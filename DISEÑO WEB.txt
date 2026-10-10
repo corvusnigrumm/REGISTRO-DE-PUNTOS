@@ -1,0 +1,2343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#1f5d3d" />
+<title>Camino a los 2000 puntos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   1. Reset y Variables
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  /* Paleta base */
+  --c-forest: #1f5d3d;
+  --c-forest-dark: #16472d;
+  --c-forest-light: #2d7a52;
+  --c-gold: #c9a24f;
+  --c-gold-light: #e0c07a;
+  --c-cream: #f3f1ea;
+  --c-cream-dark: #ebe7dc;
+
+  /* Superficies */
+  --surface: #ffffff;
+  --surface-2: #fafaf7;
+  --surface-elevated: #ffffff;
+  --bg: var(--c-cream);
+
+  /* Texto */
+  --text: #1a1a1a;
+  --text-soft: #4a5451;
+  --text-mute: #8a8f8d;
+  --text-inverse: #ffffff;
+
+  /* Semántica */
+  --positive: #2f8f4f;
+  --positive-bg: #e8f4ec;
+  --negative: #c7523a;
+  --negative-bg: #fae8e3;
+
+  /* Bordes */
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(31, 93, 61, 0.04), 0 2px 4px rgba(31, 93, 61, 0.04);
+  --shadow-md: 0 4px 8px rgba(31, 93, 61, 0.06), 0 2px 4px rgba(31, 93, 61, 0.04);
+  --shadow-lg: 0 12px 32px rgba(31, 93, 61, 0.10), 0 4px 8px rgba(31, 93, 61, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(31, 93, 61, 0.22);
+
+  /* Radios */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-xl: 24px;
+  --r-full: 999px;
+
+  /* Espaciado */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+  --s-9: 48px;
+  --s-10: 64px;
+
+  /* Tipografía fluida */
+  --t-xs: clamp(0.70rem, 0.68rem + 0.1vw, 0.75rem);
+  --t-sm: clamp(0.80rem, 0.78rem + 0.1vw, 0.875rem);
+  --t-md: clamp(0.90rem, 0.88rem + 0.12vw, 1rem);
+  --t-lg: clamp(1.05rem, 1rem + 0.2vw, 1.15rem);
+  --t-xl: clamp(1.25rem, 1.15rem + 0.4vw, 1.5rem);
+  --t-2xl: clamp(1.5rem, 1.3rem + 0.8vw, 1.9rem);
+  --t-3xl: clamp(1.75rem, 1.4rem + 1.3vw, 2.5rem);
+  --t-4xl: clamp(2rem, 1.5rem + 2vw, 3rem);
+  --t-5xl: clamp(2.5rem, 2rem + 2.5vw, 4rem);
+
+  /* Transiciones */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 150ms;
+  --t-mid: 250ms;
+  --t-slow: 350ms;
+
+  /* Safe area */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* Modo oscuro */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #171f1b;
+    --surface-2: #1d2621;
+    --surface-elevated: #222c27;
+    --bg: #0f1412;
+
+    --text: #eef2ef;
+    --text-soft: #b8bfbb;
+    --text-mute: #77807c;
+
+    --c-forest: #3fa076;
+    --c-forest-dark: #2d7a52;
+    --c-forest-light: #5bbd8e;
+    --c-gold: #e0b868;
+    --c-gold-light: #f0d090;
+    --c-cream: #1a2420;
+
+    --positive: #52c87f;
+    --positive-bg: rgba(82, 200, 127, 0.12);
+    --negative: #f0775d;
+    --negative-bg: rgba(240, 119, 93, 0.12);
+
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45);
+    --shadow-focus: 0 0 0 3px rgba(63, 160, 118, 0.4);
+  }
+}
+
+html, body { margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-feature-settings: 'ss01', 'cv11';
+  color: var(--text);
+  background: var(--bg);
+  font-size: var(--t-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-top: calc(var(--sat));
+  padding-bottom: var(--sab);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+button { font-family: inherit; font-size: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+input, textarea { font-family: inherit; font-size: inherit; }
+svg { display: block; max-width: 100%; }
+:focus { outline: none; }
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--r-sm);
+}
+
+/* Números tabulares */
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" on; }
+
+/* ==========================================================================
+   2. Layout general
+   ========================================================================== */
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--s-4) var(--s-4) var(--s-10);
+  padding-left: max(var(--s-4), var(--sal));
+  padding-right: max(var(--s-4), var(--sar));
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: flex-start;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+  position: sticky;
+  top: calc(var(--sat));
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  z-index: 20;
+  padding: var(--s-3) var(--s-2);
+  margin-left: calc(var(--s-2) * -1);
+  margin-right: calc(var(--s-2) * -1);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--t-mid) var(--ease);
+}
+.header.scrolled { border-bottom-color: var(--border); }
+
+.header-title h1 {
+  font-size: var(--t-xl);
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.header-title .date {
+  font-size: var(--t-sm);
+  color: var(--text-mute);
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+
+/* Selector de persona (segmented control) */
+.person-selector {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  padding: 4px;
+  gap: 2px;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  min-height: 44px;
+}
+.person-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  font-weight: 600;
+  color: var(--text-soft);
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+  position: relative;
+  z-index: 1;
+  min-height: 36px;
+}
+.person-btn:hover { color: var(--text); }
+.person-btn[aria-selected="true"] {
+  color: var(--text-inverse);
+}
+.person-btn[aria-selected="true"] .avatar { background: rgba(255,255,255,0.22); color: var(--text-inverse); }
+.selector-pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  border-radius: var(--r-full);
+  background: var(--c-forest);
+  transition: transform var(--t-mid) var(--ease), width var(--t-mid) var(--ease);
+  z-index: 0;
+  box-shadow: 0 2px 8px rgba(31,93,61,0.25);
+}
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--c-cream-dark);
+  color: var(--c-forest-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--t-sm);
+  flex-shrink: 0;
+}
+@media (prefers-color-scheme: dark) {
+  .avatar { background: var(--surface-elevated); color: var(--c-forest-light); }
+}
+
+/* Banner dorado de recompensa */
+.reward-banner {
+  background: linear-gradient(135deg, #d6b265 0%, #c9a24f 50%, #b88d3d 100%);
+  color: #3a2a0a;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-6);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.35);
+  position: relative;
+  overflow: hidden;
+}
+.reward-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.25), transparent 60%);
+  pointer-events: none;
+}
+.reward-banner .trophy {
+  font-size: 28px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
+.reward-banner .reward-text { font-weight: 600; font-size: var(--t-md); position: relative; }
+.reward-banner .reward-label { font-size: var(--t-xs); text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; margin-bottom: 2px; font-weight: 700; }
+
+@media (prefers-color-scheme: dark) {
+  .reward-banner { color: #1a1404; }
+}
+
+/* Grid del dashboard */
+.dashboard {
+  display: grid;
+  gap: var(--s-5);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .dashboard { grid-template-columns: repeat(2, 1fr); }
+  .dashboard > .span-2 { grid-column: span 2; }
+}
+@media (min-width: 1024px) {
+  .dashboard {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-6);
+  }
+  .dashboard > .span-2 { grid-column: span 2; }
+  .dashboard > .span-3 { grid-column: span 3; }
+}
+
+/* ==========================================================================
+   3. Tarjetas base
+   ========================================================================== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--t-mid) var(--ease), transform var(--t-mid) var(--ease);
+}
+.card:hover { box-shadow: var(--shadow-md); }
+.card-title {
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+  margin: 0 0 var(--s-4);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.card-title .icon {
+  width: 20px;
+  height: 20px;
+  color: var(--c-forest);
+}
+
+/* ==========================================================================
+   4. Progreso principal
+   ========================================================================== */
+.progress-card {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+  padding: var(--s-6);
+}
+.progress-top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s-5);
+  align-items: center;
+}
+.ring-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: clamp(140px, 30vw, 200px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+.ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+.ring-bg { stroke: color-mix(in srgb, var(--c-forest) 12%, var(--surface)); fill: none; stroke-width: 10; }
+.ring-fg {
+  stroke: var(--c-forest);
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 439.82;
+  stroke-dashoffset: 439.82;
+  transition: stroke-dashoffset 900ms cubic-bezier(0.4, 0, 0.2, 1), stroke var(--t-mid) var(--ease);
+  filter: drop-shadow(0 2px 6px rgba(31, 93, 61, 0.25));
+}
+.ring-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.ring-percent {
+  font-size: var(--t-4xl);
+  font-weight: 800;
+  color: var(--c-forest);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.ring-percent .pct { font-size: 0.5em; color: var(--text-mute); font-weight: 600; margin-left: 2px; }
+.ring-sub {
+  font-size: var(--t-sm);
+  color: var(--text-soft);
+  margin-top: 6px;
+}
+
+.progress-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  text-align: center;
+}
+@media (min-width: 640px) {
+  .progress-info { text-align: left; }
+}
+.progress-total {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.progress-total .label {
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+  font-weight: 700;
+}
+.progress-total .value {
+  font-size: var(--t-3xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.1;
+}
+.progress-total .goal {
+  font-size: var(--t-sm);
+  color: var(--text-mute);
+  font-weight: 500;
+}
+
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--positive-bg);
+  color: var(--positive);
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  align-self: center;
+}
+@media (min-width: 640px) { .level-badge { align-self: flex-start; } }
+
+/* Barra lineal con hitos */
+.progress-bar-wrap {
+  margin-top: var(--s-5);
+  position: relative;
+}
+.progress-bar {
+  position: relative;
+  height: 12px;
+  background: color-mix(in srgb, var(--c-forest) 10%, var(--surface-2));
+  border-radius: var(--r-full);
+  overflow: visible;
+}
+.progress-bar-fill {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--c-forest) 0%, var(--c-forest-light) 100%);
+  border-radius: var(--r-full);
+  width: 0%;
+  transition: width 900ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(31, 93, 61, 0.3);
+}
+.milestones {
+  position: relative;
+  margin-top: var(--s-3);
+  height: 18px;
+}
+.milestone {
+  position: absolute;
+  top: -30px;
+  width: 2px;
+  height: 10px;
+  background: var(--text-mute);
+  opacity: 0.5;
+}
+.milestone-label {
+  position: absolute;
+  top: 22px;
+  transform: translateX(-50%);
+  font-size: var(--t-xs);
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.remaining {
+  margin-top: var(--s-3);
+  font-size: var(--t-md);
+  color: var(--text-soft);
+  text-align: center;
+}
+.remaining .num { color: var(--c-forest); font-weight: 700; font-size: var(--t-lg); }
+
+/* Estado meta alcanzada */
+.progress-card.gold {
+  background: linear-gradient(135deg, #fdf6e3 0%, #f5e7be 100%);
+  border-color: rgba(201, 162, 79, 0.4);
+}
+@media (prefers-color-scheme: dark) {
+  .progress-card.gold {
+    background: linear-gradient(135deg, #3a2f15 0%, #2a2310 100%);
+    border-color: rgba(224, 184, 104, 0.4);
+  }
+}
+.progress-card.gold .ring-fg { stroke: var(--c-gold); filter: drop-shadow(0 2px 8px rgba(201, 162, 79, 0.5)); }
+.progress-card.gold .ring-percent { color: var(--c-gold); }
+.progress-card.gold .progress-bar-fill {
+  background: linear-gradient(90deg, var(--c-gold) 0%, var(--c-gold-light) 100%);
+  box-shadow: 0 2px 8px rgba(201, 162, 79, 0.4);
+}
+.progress-card.gold .level-badge {
+  background: linear-gradient(135deg, var(--c-gold) 0%, var(--c-gold-light) 100%);
+  color: #3a2a0a;
+}
+
+/* ==========================================================================
+   5. Tarjetas de estadísticas
+   ========================================================================== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-3);
+}
+@media (min-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: transform var(--t-mid) var(--ease), box-shadow var(--t-mid) var(--ease);
+}
+.stat:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-label {
+  font-size: var(--t-xs);
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stat-value {
+  font-size: var(--t-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.stat-value.pos { color: var(--positive); }
+.stat-value.neg { color: var(--negative); }
+.stat-sub { font-size: var(--t-xs); color: var(--text-mute); }
+.stat-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   6. Registro rápido
+   ========================================================================== */
+.register-card { display: flex; flex-direction: column; gap: var(--s-4); }
+.date-row {
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.date-row .input-group { flex: 1; min-width: 140px; }
+.input-group label {
+  display: block;
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.input-group input, .input-group textarea, .input-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+  min-height: 44px;
+}
+.input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+  outline: none;
+  border-color: var(--c-forest);
+  box-shadow: var(--shadow-focus);
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-3);
+}
+@media (min-width: 420px) { .categories-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 640px) { .categories-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .categories-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.cat-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: var(--s-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  text-align: left;
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+  min-height: 88px;
+  position: relative;
+  overflow: hidden;
+}
+.cat-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
+.cat-btn:active { transform: translateY(0); }
+.cat-btn .emoji { font-size: 26px; line-height: 1; }
+.cat-btn .cat-name { font-size: var(--t-sm); font-weight: 600; color: var(--text); line-height: 1.2; }
+.cat-btn .cat-pts {
+  font-size: var(--t-md);
+  font-weight: 700;
+  margin-top: auto;
+}
+.cat-btn .cat-pts.pos { color: var(--positive); }
+.cat-btn .cat-pts.neg { color: var(--negative); }
+.cat-btn .cat-pts.crit { color: var(--c-gold); font-size: var(--t-xs); text-transform: uppercase; letter-spacing: 0.08em; }
+
+.btn-manual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: var(--c-forest);
+  color: var(--text-inverse);
+  border-radius: var(--r-md);
+  font-weight: 700;
+  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  min-height: 44px;
+}
+.btn-manual:hover { background: var(--c-forest-dark); }
+.btn-manual:active { transform: scale(0.98); }
+.btn-manual svg { width: 18px; height: 18px; }
+
+/* ==========================================================================
+   7. Gráficos
+   ========================================================================== */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-5);
+}
+@media (min-width: 640px) { .charts-grid { grid-template-columns: 1fr; } }
+.chart-wrap { position: relative; height: 240px; }
+
+/* ==========================================================================
+   8. Resumen por categoría
+   ========================================================================== */
+.cat-summary-list { display: flex; flex-direction: column; gap: var(--s-3); }
+.cat-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  transition: background var(--t-fast) var(--ease);
+}
+.cat-row:hover { background: var(--surface-2); }
+.cat-row .emoji { font-size: 22px; width: 32px; text-align: center; }
+.cat-row .info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cat-row .name { font-weight: 600; font-size: var(--t-sm); color: var(--text); }
+.cat-row .bar {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: var(--r-full);
+  overflow: hidden;
+  max-width: 160px;
+}
+.cat-row .bar-fill {
+  height: 100%;
+  background: var(--c-forest);
+  border-radius: var(--r-full);
+  transition: width var(--t-slow) var(--ease);
+}
+.cat-row .count {
+  font-size: var(--t-xs);
+  color: var(--text-mute);
+}
+.cat-row .points {
+  font-weight: 700;
+  font-size: var(--t-md);
+  text-align: right;
+  white-space: nowrap;
+}
+.cat-row .points.pos { color: var(--positive); }
+.cat-row .points.neg { color: var(--negative); }
+
+/* ==========================================================================
+   9. Historial
+   ========================================================================== */
+.history-list { display: flex; flex-direction: column; gap: var(--s-2); }
+.history-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.history-item:hover { background: var(--surface-2); }
+.history-item .emoji { font-size: 22px; width: 32px; text-align: center; }
+.history-item .info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.history-item .cat-name { font-weight: 600; font-size: var(--t-sm); color: var(--text); }
+.history-item .reason {
+  font-size: var(--t-xs);
+  color: var(--text-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.history-item .meta {
+  font-size: var(--t-xs);
+  color: var(--text-mute);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.history-item .pts {
+  font-weight: 700;
+  font-size: var(--t-md);
+  white-space: nowrap;
+}
+.history-item .pts.pos { color: var(--positive); }
+.history-item .pts.neg { color: var(--negative); }
+.btn-delete {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  color: var(--text-mute);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.btn-delete:hover { background: var(--negative-bg); color: var(--negative); }
+.btn-delete svg { width: 18px; height: 18px; }
+
+/* ==========================================================================
+   10. Empty states
+   ========================================================================== */
+.empty {
+  text-align: center;
+  padding: var(--s-8) var(--s-4);
+  color: var(--text-mute);
+}
+.empty .emoji { font-size: 48px; margin-bottom: var(--s-3); }
+.empty h3 { font-size: var(--t-lg); margin: 0 0 4px; color: var(--text-soft); font-weight: 600; }
+.empty p { font-size: var(--t-sm); margin: 0; }
+
+/* Skeleton */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: skeleton-shine 1.5s infinite;
+}
+@media (prefers-color-scheme: dark) {
+  .skeleton::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); }
+}
+@keyframes skeleton-shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.skeleton-bar { height: 12px; margin: 8px 0; }
+
+/* ==========================================================================
+   11. Toasts
+   ========================================================================== */
+.toasts {
+  position: fixed;
+  bottom: calc(var(--sab) + 24px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+  width: min(90vw, 420px);
+  pointer-events: none;
+}
+.toast {
+  background: var(--surface-elevated);
+  color: var(--text);
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  border-left: 4px solid var(--c-forest);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  pointer-events: auto;
+  animation: toast-in 300ms var(--ease) both;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.toast.error { border-left-color: var(--negative); }
+.toast.success { border-left-color: var(--positive); }
+.toast.removing { animation: toast-out 250ms var(--ease) both; }
+.toast-icon { font-size: 18px; flex-shrink: 0; line-height: 1; }
+.toast-msg { flex: 1; }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-12px); }
+}
+
+/* ==========================================================================
+   12. Modales y bottom sheet
+   ========================================================================== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 15, 12, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-mid) var(--ease);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: var(--s-4);
+}
+.overlay.open { opacity: 1; pointer-events: auto; }
+@media (min-width: 640px) {
+  .overlay { align-items: center; }
+}
+
+.modal {
+  background: var(--surface-elevated);
+  border-radius: var(--r-xl);
+  padding: var(--s-6);
+  width: min(100%, 440px);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(40px);
+  opacity: 0;
+  transition: transform var(--t-mid) var(--ease), opacity var(--t-mid) var(--ease);
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+.overlay.open .modal {
+  transform: translateY(0);
+  opacity: 1;
+}
+@media (min-width: 640px) {
+  .modal { border-radius: var(--r-lg); }
+}
+
+.modal h2 { margin: 0 0 var(--s-2); font-size: var(--t-xl); font-weight: 700; }
+.modal .subtitle { color: var(--text-mute); margin: 0 0 var(--s-5); font-size: var(--t-sm); }
+.modal .field { margin-bottom: var(--s-4); }
+.modal .field label {
+  display: block;
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.modal .field input, .modal .field textarea, .modal .field select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  min-height: 44px;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.modal .field input:focus, .modal .field textarea:focus, .modal .field select:focus {
+  outline: none;
+  border-color: var(--c-forest);
+  box-shadow: var(--shadow-focus);
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: var(--s-6);
+}
+.btn {
+  padding: 12px 20px;
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  font-size: var(--t-sm);
+  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn-primary { background: var(--c-forest); color: var(--text-inverse); }
+.btn-primary:hover { background: var(--c-forest-dark); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--text-soft); }
+.btn-ghost:hover { background: var(--surface-2); }
+.btn-danger { background: var(--negative); color: var(--text-inverse); }
+.btn-danger:hover { background: color-mix(in srgb, var(--negative) 85%, black); }
+.btn-danger:active { transform: scale(0.98); }
+
+.modal-close {
+  position: absolute;
+  top: var(--s-3);
+  right: var(--s-3);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--text-mute);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-close:hover { background: var(--surface-2); color: var(--text); }
+.modal { position: relative; }
+
+/* Bottom sheet específico en móvil */
+@media (max-width: 639px) {
+  .overlay.bottom-sheet { padding: 0; align-items: flex-end; }
+  .overlay.bottom-sheet .modal {
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    width: 100%;
+    max-height: 92vh;
+    max-height: 92dvh;
+    padding-bottom: calc(var(--s-6) + var(--sab));
+    transform: translateY(100%);
+  }
+  .overlay.bottom-sheet.open .modal {
+    transform: translateY(0);
+  }
+  .overlay.bottom-sheet .modal::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: var(--border-strong);
+    border-radius: 2px;
+  }
+}
+
+/* ==========================================================================
+   13. Confeti
+   ========================================================================== */
+#confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ==========================================================================
+   14. Loading inicial
+   ========================================================================== */
+.app-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  padding: var(--s-10) var(--s-4);
+  text-align: center;
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--c-forest);
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ==========================================================================
+   15. prefers-reduced-motion
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .ring-fg, .progress-bar-fill, .cat-row .bar-fill { transition: none !important; }
+}
+
+/* ==========================================================================
+   16. Utilidades
+   ========================================================================== */
+.hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+/* Responsive pequeño refinamiento móvil */
+@media (max-width: 420px) {
+  .header-title h1 { font-size: var(--t-lg); }
+  .person-btn span.person-name { display: none; }
+  .person-btn { padding: 6px 10px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- Toasts -->
+<div id="toasts" class="toasts" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Overlay para modales -->
+<div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div id="modal" class="modal"></div>
+</div>
+
+<!-- Canvas para confeti -->
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<div class="app" id="app">
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="header-title">
+      <h1 id="header-title-text">Camino a los 2000 puntos</h1>
+      <div class="date" id="header-date">—</div>
+    </div>
+    <div class="person-selector" role="tablist" aria-label="Seleccionar persona">
+      <span class="selector-pill" id="selector-pill"></span>
+      <!-- Los botones de persona se inyectan aquí -->
+    </div>
+  </header>
+
+  <!-- Banner de recompensa -->
+  <section class="reward-banner" id="reward-banner" aria-label="Recompensa">
+    <span class="trophy" aria-hidden="true">🏆</span>
+    <div>
+      <div class="reward-label">Recompensa</div>
+      <div class="reward-text" id="reward-text">—</div>
+    </div>
+  </section>
+
+  <!-- Loader inicial -->
+  <div id="initial-loading" class="app-loading">
+    <div class="spinner" role="status" aria-label="Cargando"></div>
+    <div class="num">Cargando datos…</div>
+  </div>
+
+  <!-- Dashboard -->
+  <main class="dashboard hidden" id="dashboard">
+
+    <!-- Progreso -->
+    <section class="card progress-card span-2" id="progress-card" aria-label="Progreso">
+      <div class="progress-top">
+        <div class="progress-info">
+          <div class="progress-total">
+            <div class="label">Total acumulado</div>
+            <div class="value num" id="progress-total">0</div>
+            <div class="goal num">Meta: <span id="progress-goal">0</span> puntos</div>
+          </div>
+          <div class="level-badge" id="level-badge">
+            <span id="level-emoji">🌱</span>
+            <span id="level-name">Comenzando</span>
+          </div>
+        </div>
+        <div class="ring-wrap" aria-hidden="true">
+          <svg class="ring" viewBox="0 0 160 160">
+            <circle class="ring-bg" cx="80" cy="80" r="70" />
+            <circle class="ring-fg" id="ring-fg" cx="80" cy="80" r="70" />
+          </svg>
+          <div class="ring-inner">
+            <div class="ring-percent"><span class="num" id="ring-percent">0</span><span class="pct">%</span></div>
+            <div class="ring-sub" id="ring-sub">de la meta</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-bar">
+          <div class="progress-bar-fill" id="progress-bar-fill" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+        </div>
+        <div class="milestones" id="milestones">
+          <div class="milestone" style="left: 25%"></div>
+          <div class="milestone" style="left: 50%"></div>
+          <div class="milestone" style="left: 75%"></div>
+          <div class="milestone-label" style="left: 25%">25%</div>
+          <div class="milestone-label" style="left: 50%">50%</div>
+          <div class="milestone-label" style="left: 75%">75%</div>
+        </div>
+      </div>
+      <div class="remaining">
+        Faltan <span class="num" id="remaining-points">0</span> puntos
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="span-2" style="grid-column: 1 / -1;">
+      <div class="stats-grid" id="stats-grid">
+        <!-- Stats inyectadas -->
+      </div>
+    </section>
+
+    <!-- Registro rápido -->
+    <section class="card register-card span-2" aria-label="Registro rápido">
+      <h2 class="card-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Registro rápido
+      </h2>
+      <div class="date-row">
+        <div class="input-group">
+          <label for="reg-date">Fecha</label>
+          <input type="date" id="reg-date" />
+        </div>
+        <div class="input-group" style="flex: 2;">
+          <label for="reg-note">Nota (opcional)</label>
+          <input type="text" id="reg-note" placeholder="Motivo o contexto…" maxlength="120" />
+        </div>
+      </div>
+      <div class="categories-grid" id="categories-grid" role="group" aria-label="Categorías">
+        <!-- Categorías inyectadas -->
+      </div>
+      <button type="button" class="btn-manual" id="btn-manual" aria-label="Abrir registro manual">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        Registro manual
+      </button>
+    </section>
+
+    <!-- Gráficos -->
+    <section class="card span-3" aria-label="Gráficos">
+      <h2 class="card-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+        Evolución
+      </h2>
+      <div class="charts-grid">
+        <div>
+          <div class="card-title" style="font-size: var(--t-xs); margin-bottom: 8px;">Acumulado últimos 30 días</div>
+          <div class="chart-wrap"><canvas id="chart-line"></canvas></div>
+        </div>
+        <div>
+          <div class="card-title" style="font-size: var(--t-xs); margin-bottom: 8px;">Puntos por día</div>
+          <div class="chart-wrap"><canvas id="chart-bars"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resumen por categoría -->
+    <section class="card span-2" aria-label="Resumen por categoría">
+      <h2 class="card-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        Por categoría
+      </h2>
+      <div id="category-summary" class="cat-summary-list">
+        <!-- Filas inyectadas -->
+      </div>
+    </section>
+
+    <!-- Historial -->
+    <section class="card span-3" aria-label="Historial">
+      <h2 class="card-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+        Historial
+      </h2>
+      <div id="history-list" class="history-list">
+        <!-- Items inyectados -->
+      </div>
+    </section>
+
+  </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+/* ==========================================================================
+   UTILIDADES
+   ========================================================================== */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+/** Escapa texto dinámico para evitar XSS */
+function esc(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/** Formatea un número con separadores de miles */
+function fmt(n) {
+  const num = Number(n) || 0;
+  return num.toLocaleString("es-ES", { maximumFractionDigits: 0 });
+}
+
+/** Formatea una fecha "yyyy-mm-dd" a texto legible */
+function fmtDate(str) {
+  if (!str) return "";
+  const [y, m, d] = str.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString("es-ES", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
+
+function fmtDateShort(str) {
+  if (!str) return "";
+  const [y, m, d] = str.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
+}
+
+/** Hoy en formato yyyy-mm-dd (local, sin UTC) */
+function todayISO() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Suma días a una fecha ISO */
+function addDays(iso, days) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + days);
+  const yy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yy}-${mm}-${dd}`;
+}
+
+/** Emoji por categoría (heurística por palabras clave) */
+function catEmoji(name) {
+  const n = (name || "").toLowerCase();
+  if (/redes|social/.test(n)) return "📵";
+  if (/ortograf|ortogr/.test(n)) return "✍️";
+  if (/gym|gimnasio|entreno/.test(n)) return "💪";
+  if (/ausen/.test(n)) return "😴";
+  if (/buen/.test(n)) return "✨";
+  if (/lectur/.test(n)) return "📚";
+  if (/agua|hidrat/.test(n)) return "💧";
+  if (/dormir|sueño|sleep/.test(n)) return "🛌";
+  if (/error|fallo/.test(n)) return "⚠️";
+  if (/mentir|menti/.test(n)) return "🤥";
+  if (/comida|comer|dieta/.test(n)) return "🥗";
+  if (/tardanza|tarde|llegar/.test(n)) return "⏰";
+  if (/otro|criterio|manual/.test(n)) return "🎯";
+  return "📌";
+}
+
+/* ==========================================================================
+   ESTADO GLOBAL
+   ========================================================================== */
+const state = {
+  today: todayISO(),
+  persons: [],
+  selectedKey: null,
+  loaded: false
+};
+
+/** Devuelve la persona seleccionada actualmente */
+function currentPerson() {
+  return state.persons.find(p => p.key === state.selectedKey) || state.persons[0];
+}
+
+/* ==========================================================================
+   CÁLCULOS
+   ========================================================================== */
+function computeStats(person) {
+  const records = person.records || [];
+  let total = 0, won = 0, lost = 0;
+  const byDay = {}; // { "yyyy-mm-dd": total }
+  const byCat = {}; // { nombre: { count, points, name } }
+
+  records.forEach(r => {
+    total += Number(r.points) || 0;
+    if (r.points > 0) won += Number(r.points);
+    if (r.points < 0) lost += Math.abs(Number(r.points));
+    byDay[r.date] = (byDay[r.date] || 0) + (Number(r.points) || 0);
+    if (!byCat[r.category]) {
+      byCat[r.category] = { name: r.category, count: 0, points: 0 };
+    }
+    byCat[r.category].count += 1;
+    byCat[r.category].points += Number(r.points) || 0;
+  });
+
+  // Racha: días consecutivos hacia atrás (incluyendo hoy) donde hubo registro positivo
+  // Se cuentan días con al menos 1 punto positivo neto.
+  let streak = 0;
+  let d = todayISO();
+  while (true) {
+    const dayTotal = byDay[d];
+    if (dayTotal && dayTotal > 0) {
+      streak += 1;
+      d = addDays(d, -1);
+    } else if (dayTotal === 0 || dayTotal === undefined) {
+      // Si hoy todavía no hay registros, permitimos empezar desde ayer
+      if (streak === 0 && d === todayISO()) {
+        d = addDays(d, -1);
+        continue;
+      }
+      break;
+    } else {
+      // Día con saldo negativo rompe la racha
+      break;
+    }
+  }
+
+  // Mejor día: el de mayor saldo neto positivo
+  let bestDay = { date: null, points: 0 };
+  Object.entries(byDay).forEach(([date, pts]) => {
+    if (pts > bestDay.points) bestDay = { date, points: pts };
+  });
+
+  // Porcentaje respecto a la meta
+  const goal = Number(person.goal) || 2000;
+  const pct = goal > 0 ? Math.min(100, Math.max(0, (total / goal) * 100)) : 0;
+
+  // Nivel
+  let level = { emoji: "🌱", name: "Comenzando" };
+  if (total >= goal) level = { emoji: "🏆", name: "Meta alcanzada" };
+  else if (pct >= 75) level = { emoji: "🏁", name: "Recta final" };
+  else if (pct >= 50) level = { emoji: "⚡", name: "A mitad de camino" };
+  else if (pct >= 25) level = { emoji: "🔥", name: "En marcha" };
+
+  // Últimos 30 días (serie acumulada)
+  const todayDate = state.today;
+  const labels = [];
+  const accum = [];
+  const daily = [];
+  let running = 0;
+
+  // Suma de registros anteriores a hace 30 días
+  const cutoff = addDays(todayDate, -29);
+  records.forEach(r => {
+    if (r.date < cutoff) running += Number(r.points) || 0;
+  });
+
+  for (let i = -29; i <= 0; i++) {
+    const day = addDays(todayDate, i);
+    labels.push(day);
+    running += (byDay[day] || 0);
+    accum.push(running);
+    daily.push(byDay[day] || 0);
+  }
+
+  const todayCount = (records.filter(r => r.date === todayDate)).length;
+
+  return {
+    total, won, lost,
+    today: { points: byDay[todayDate] || 0, count: todayCount },
+    streak, bestDay,
+    goal, pct, level,
+    byCat, byDay,
+    series: { labels, accum, daily }
+  };
+}
+
+/* ==========================================================================
+   TOASTS
+   ========================================================================== */
+function toast(message, type = "info", duration = 3500) {
+  const container = $("#toasts");
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
+  const icons = { error: "⚠️", success: "✅", info: "ℹ️" };
+  el.innerHTML = `
+    <span class="toast-icon">${icons[type] || icons.info}</span>
+    <div class="toast-msg">${esc(message)}</div>
+  `;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.classList.add("removing");
+    setTimeout(() => el.remove(), 250);
+  }, duration);
+}
+
+/* ==========================================================================
+   MODALES
+   ========================================================================== */
+const overlay = $("#overlay");
+const modal = $("#modal");
+let lastFocus = null;
+let modalCleanup = null;
+
+function openModal(html, opts = {}) {
+  lastFocus = document.activeElement;
+  modal.innerHTML = html;
+  overlay.classList.toggle("bottom-sheet", !!opts.bottomSheet);
+  overlay.classList.add("open");
+  document.body.style.overflow = "hidden";
+
+  // Focus al primer input
+  requestAnimationFrame(() => {
+    const first = modal.querySelector("input, textarea, select, button");
+    if (first) first.focus();
+  });
+
+  if (opts.onMount) opts.onMount(modal);
+  modalCleanup = opts.onClose || null;
+}
+
+function closeModal() {
+  overlay.classList.remove("open");
+  document.body.style.overflow = "";
+  if (modalCleanup) { try { modalCleanup(); } catch(e) {} modalCleanup = null; }
+  if (lastFocus) { try { lastFocus.focus(); } catch(e) {} }
+  setTimeout(() => { if (!overlay.classList.contains("open")) modal.innerHTML = ""; }, 300);
+}
+
+overlay.addEventListener("click", (e) => {
+  if (e.target === overlay) closeModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && overlay.classList.contains("open")) closeModal();
+});
+
+/* Modal de categoría "a criterio" */
+function openCritModal(category) {
+  const html = `
+    <button type="button" class="modal-close" aria-label="Cerrar" id="modal-close-x">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <h2 id="modal-title">${esc(catEmoji(category.name))} ${esc(category.name)}</h2>
+    <p class="subtitle">Esta categoría es a criterio. Ingresa los puntos a sumar o restar.</p>
+    <div class="field">
+      <label for="crit-points">Puntos</label>
+      <input type="number" id="crit-points" step="1" placeholder="Ej: 25 o -10" autofocus />
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="crit-cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="crit-save">Guardar</button>
+    </div>
+  `;
+  openModal(html, {
+    bottomSheet: true,
+    onMount: (m) => {
+      const input = m.querySelector("#crit-points");
+      m.querySelector("#crit-cancel").addEventListener("click", closeModal);
+      m.querySelector("#modal-close-x").addEventListener("click", closeModal);
+      m.querySelector("#crit-save").addEventListener("click", async () => {
+        const pts = input.value.trim();
+        if (pts === "" || isNaN(Number(pts))) {
+          toast("Ingresa un número válido", "error");
+          input.focus();
+          return;
+        }
+        await submitRecord({
+          category: category.name,
+          points: Number(pts),
+          reason: $("#reg-note").value.trim()
+        });
+        closeModal();
+      });
+    }
+  });
+}
+
+/* Modal de registro manual */
+function openManualModal() {
+  const person = currentPerson();
+  const catOptions = person.categories.map(c =>
+    `<option value="${esc(c.name)}">${esc(catEmoji(c.name))} ${esc(c.name)}${c.points === null ? " (a criterio)" : ` (${c.points > 0 ? "+" : ""}${c.points})`}</option>`
+  ).join("");
+
+  const html = `
+    <button type="button" class="modal-close" aria-label="Cerrar" id="modal-close-x">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <h2 id="modal-title">📝 Registro manual</h2>
+    <p class="subtitle">Completa los datos del registro.</p>
+    <div class="field">
+      <label for="man-date">Fecha</label>
+      <input type="date" id="man-date" value="${esc($("#reg-date").value)}" />
+    </div>
+    <div class="field">
+      <label for="man-cat">Categoría</label>
+      <select id="man-cat">${catOptions}</select>
+    </div>
+    <div class="field" id="man-points-wrap" style="display:none;">
+      <label for="man-points">Puntos</label>
+      <input type="number" id="man-points" step="1" placeholder="Ej: 25 o -10" />
+    </div>
+    <div class="field">
+      <label for="man-reason">Nota (opcional)</label>
+      <textarea id="man-reason" rows="2" placeholder="Contexto o motivo…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="man-cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="man-save">Guardar</button>
+    </div>
+  `;
+  openModal(html, {
+    bottomSheet: true,
+    onMount: (m) => {
+      const catSel = m.querySelector("#man-cat");
+      const pointsWrap = m.querySelector("#man-points-wrap");
+      const pointsInput = m.querySelector("#man-points");
+      const updatePtsField = () => {
+        const cat = person.categories.find(c => c.name === catSel.value);
+        if (cat && cat.points === null) {
+          pointsWrap.style.display = "block";
+          pointsInput.required = true;
+        } else {
+          pointsWrap.style.display = "none";
+          pointsInput.required = false;
+          pointsInput.value = "";
+        }
+      };
+      catSel.addEventListener("change", updatePtsField);
+      updatePtsField();
+
+      m.querySelector("#man-cancel").addEventListener("click", closeModal);
+      m.querySelector("#modal-close-x").addEventListener("click", closeModal);
+      m.querySelector("#man-save").addEventListener("click", async () => {
+        const catName = catSel.value;
+        const cat = person.categories.find(c => c.name === catName);
+        const date = m.querySelector("#man-date").value;
+        const reason = m.querySelector("#man-reason").value.trim();
+        if (!date) { toast("Selecciona una fecha", "error"); return; }
+        let points;
+        if (cat.points === null) {
+          const v = m.querySelector("#man-points").value.trim();
+          if (v === "" || isNaN(Number(v))) { toast("Ingresa los puntos", "error"); return; }
+          points = Number(v);
+        } else {
+          points = cat.points;
+        }
+        await submitRecord({ date, category: catName, points, reason });
+        closeModal();
+      });
+    }
+  });
+}
+
+/* Modal de confirmación para eliminar */
+function openDeleteModal(record) {
+  const html = `
+    <button type="button" class="modal-close" aria-label="Cerrar" id="modal-close-x">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <h2 id="modal-title">¿Eliminar registro?</h2>
+    <p class="subtitle">Se eliminará "${esc(record.category)}" del ${esc(fmtDateShort(record.date))}${record.reason ? ` — ${esc(record.reason)}` : ""}. Esta acción no se puede deshacer.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="del-cancel">Cancelar</button>
+      <button type="button" class="btn btn-danger" id="del-confirm">Eliminar</button>
+    </div>
+  `;
+  openModal(html, {
+    bottomSheet: true,
+    onMount: (m) => {
+      m.querySelector("#del-cancel").addEventListener("click", closeModal);
+      m.querySelector("#modal-close-x").addEventListener("click", closeModal);
+      m.querySelector("#del-confirm").addEventListener("click", async () => {
+        await deleteRecordById(record.id);
+        closeModal();
+      });
+    }
+  });
+}
+
+/* ==========================================================================
+   API (con fallback demo)
+   ========================================================================== */
+
+/* ---------- MODO DEMO ---------- */
+const MOCK = {
+  enabled: typeof google === "undefined" || !google.script || !google.script.run,
+  data: null
+};
+
+function buildMockData() {
+  const today = todayISO();
+  const commonCats = [
+    { name: "Día sin redes sociales", points: 50, group: "sinRedes" },
+    { name: "Día de gym", points: 20, group: "gym" },
+    { name: "Buena acción", points: 30, group: null },
+    { name: "Error ortográfico", points: -15, group: null },
+    { name: "Ausencia", points: -50, group: null },
+    { name: "Otro (a criterio)", points: null, group: null }
+  ];
+
+  function randRecords(seed) {
+    const recs = [];
+    let id = 0;
+    for (let i = -25; i <= 0; i++) {
+      const date = addDays(today, i);
+      const r = Math.abs(Math.sin(seed + i * 0.7)) ;
+      if (r < 0.55) {
+        const cat = commonCats[Math.floor(Math.abs(Math.sin(seed + i)) * (commonCats.length - 1))];
+        const reason = [
+          "", "Por la mañana", "Antes de dormir", "Reto del día", "Se esforzó", "Sin excusas"
+        ][Math.floor(Math.abs(Math.sin(seed + i * 2.3)) * 6)];
+        recs.push({ id: id++, date, category: cat.name, points: cat.points === null ? (Math.floor(r * 40) - 10) : cat.points, reason });
+      }
+    }
+    return recs;
+  }
+
+  MOCK.data = {
+    today,
+    persons: [
+      {
+        key: "p1",
+        name: "Leonardo",
+        goal: 2000,
+        reward: "Un juego con valor máximo de 200K",
+        categories: commonCats,
+        records: randRecords(13)
+      },
+      {
+        key: "p2",
+        name: "Felipe",
+        goal: 2000,
+        reward: "Cena gourmet en restaurante a elección",
+        categories: commonCats,
+        records: randRecords(7)
+      }
+    ]
+  };
+}
+
+/** Obtiene todos los datos */
+function apiGetAll() {
+  return new Promise((resolve, reject) => {
+    if (MOCK.enabled) {
+      if (!MOCK.data) buildMockData();
+      setTimeout(() => resolve(structuredClone(MOCK.data)), 400);
+      return;
+    }
+    try {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler((e) => reject(new Error(e && e.message ? e.message : "Error desconocido")))
+        .getAll();
+    } catch (e) {
+      reject(new Error("No se pudo conectar con el backend"));
+    }
+  });
+}
+
+/** Añade un registro */
+function apiAddRecord(key, payload) {
+  return new Promise((resolve, reject) => {
+    if (MOCK.enabled) {
+      setTimeout(() => {
+        const person = MOCK.data.persons.find(p => p.key === key);
+        if (!person) return reject(new Error("Persona no encontrada"));
+        // Validar grupo único por día
+        const cat = person.categories.find(c => c.name === payload.category);
+        if (cat && cat.group) {
+          const exists = person.records.some(r =>
+            r.date === payload.date &&
+            person.categories.find(c => c.name === r.category)?.group === cat.group
+          );
+          if (exists) {
+            return reject(new Error(`Ya registraste esta categoría (${cat.group}) en esa fecha`));
+          }
+        }
+        const newId = person.records.length ? Math.max(...person.records.map(r => r.id)) + 1 : 1;
+        const record = {
+          id: newId,
+          date: payload.date,
+          category: payload.category,
+          points: payload.points === "" ? (cat.points || 0) : Number(payload.points),
+          reason: payload.reason || ""
+        };
+        person.records.push(record);
+        resolve(structuredClone(person));
+      }, 250);
+      return;
+    }
+    try {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler((e) => reject(new Error(e && e.message ? e.message : "Error al guardar")))
+        .addRecord(key, payload);
+    } catch (e) {
+      reject(new Error("No se pudo conectar con el backend"));
+    }
+  });
+}
+
+/** Elimina un registro */
+function apiDeleteRecord(key, id) {
+  return new Promise((resolve, reject) => {
+    if (MOCK.enabled) {
+      setTimeout(() => {
+        const person = MOCK.data.persons.find(p => p.key === key);
+        if (!person) return reject(new Error("Persona no encontrada"));
+        person.records = person.records.filter(r => r.id !== id);
+        resolve(structuredClone(person));
+      }, 200);
+      return;
+    }
+    try {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler((e) => reject(new Error(e && e.message ? e.message : "Error al eliminar")))
+        .deleteRecord(key, id);
+    } catch (e) {
+      reject(new Error("No se pudo conectar con el backend"));
+    }
+  });
+}
+
+/* ==========================================================================
+   ACCIONES
+   ========================================================================== */
+
+async function submitRecord({ date, category, points, reason }) {
+  const person = currentPerson();
+  const cat = person.categories.find(c => c.name === category);
+  const dateVal = date || $("#reg-date").value;
+  if (!dateVal) { toast("Selecciona una fecha", "error"); return; }
+
+  // Validación de grupo (cliente)
+  if (cat && cat.group) {
+    const exists = person.records.some(r =>
+      r.date === dateVal &&
+      person.categories.find(c => c.name === r.category)?.group === cat.group
+    );
+    if (exists) {
+      toast(`Ya registraste esta categoría el ${fmtDateShort(dateVal)}`, "error");
+      return;
+    }
+  }
+
+  // Si la categoría no tiene puntos fijos y no se pasó points, usar el input o el default
+  let ptsVal;
+  if (cat.points === null) {
+    ptsVal = points;
+  } else {
+    ptsVal = points !== undefined ? points : cat.points;
+  }
+
+  try {
+    const updated = await apiAddRecord(person.key, {
+      date: dateVal,
+      category,
+      points: ptsVal === "" ? "" : Number(ptsVal),
+      reason: reason || ""
+    });
+    // Reemplazar la persona en el estado
+    const idx = state.persons.findIndex(p => p.key === person.key);
+    if (idx >= 0) state.persons[idx] = updated;
+    toast(`Registro añadido (+${ptsVal >= 0 ? "" : ""}${fmt(ptsVal)})`, "success");
+    render();
+  } catch (e) {
+    toast(e.message || "No se pudo guardar", "error");
+  }
+}
+
+async function deleteRecordById(id) {
+  const person = currentPerson();
+  try {
+    const updated = await apiDeleteRecord(person.key, id);
+    const idx = state.persons.findIndex(p => p.key === person.key);
+    if (idx >= 0) state.persons[idx] = updated;
+    toast("Registro eliminado", "success");
+    render();
+  } catch (e) {
+    toast(e.message || "No se pudo eliminar", "error");
+  }
+}
+
+/* ==========================================================================
+   RENDER
+   ========================================================================== */
+let prevPct = -1;
+
+function render() {
+  const person = currentPerson();
+  if (!person) return;
+
+  // Header
+  $("#header-title-text").textContent = `Camino a los ${fmt(person.goal)} puntos`;
+  $("#header-date").textContent = fmtDate(state.today);
+
+  // Reward
+  $("#reward-text").textContent = person.reward || "—";
+
+  // Progreso
+  const stats = computeStats(person);
+  $("#progress-total").textContent = fmt(stats.total);
+  $("#progress-goal").textContent = fmt(stats.goal);
+
+  // Anillo
+  const circumference = 2 * Math.PI * 70; // 439.82
+  const ringFg = $("#ring-fg");
+  ringFg.style.strokeDasharray = circumference;
+  ringFg.style.strokeDashoffset = circumference * (1 - stats.pct / 100);
+  $("#ring-percent").textContent = Math.round(stats.pct);
+  $("#ring-sub").textContent = stats.total >= stats.goal ? "¡Meta alcanzada!" : "de la meta";
+
+  const progressCard = $("#progress-card");
+  progressBarFill = $("#progress-bar-fill");
+  progressBarFill.style.width = stats.pct + "%";
+  progressBarFill.setAttribute("aria-valuenow", Math.round(stats.pct));
+
+  const remaining = Math.max(0, stats.goal - stats.total);
+  $("#remaining-points").textContent = fmt(remaining);
+
+  // Nivel
+  const levelBadge = $("#level-badge");
+  $("#level-emoji").textContent = stats.level.emoji;
+  $("#level-name").textContent = stats.level.name;
+
+  // Estado dorado si meta alcanzada
+  if (stats.total >= stats.goal) {
+    progressCard.classList.add("gold");
+    // Confeti sólo si acabamos de llegar (transición desde <100 a >=100)
+    if (prevPct !== -1 && prevPct < 100) {
+      triggerConfetti();
+    }
+  } else {
+    progressCard.classList.remove("gold");
+  }
+  prevPct = stats.pct;
+
+  // Stats
+  renderStats(stats);
+
+  // Categorías del registro rápido
+  renderCategories(person);
+
+  // Resumen por categoría
+  renderCategorySummary(stats);
+
+  // Historial
+  renderHistory(person);
+
+  // Gráficos
+  renderCharts(stats);
+}
+
+function renderStats(stats) {
+  const grid = $("#stats-grid");
+  const todayPts = stats.today.points;
+  const items = [
+    {
+      label: "Puntos ganados",
+      value: "+" + fmt(stats.won),
+      cls: "pos",
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`
+    },
+    {
+      label: "Puntos perdidos",
+      value: "-" + fmt(stats.lost),
+      cls: "neg",
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`
+    },
+    {
+      label: "Hoy",
+      value: (todayPts >= 0 ? "+" : "") + fmt(todayPts),
+      cls: todayPts >= 0 ? "pos" : "neg",
+      sub: stats.today.count + (stats.today.count === 1 ? " registro" : " registros"),
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
+    },
+    {
+      label: "Racha",
+      value: stats.streak,
+      sub: stats.streak === 1 ? "día seguido" : "días seguidos",
+      cls: "",
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`
+    },
+    {
+      label: "Mejor día",
+      value: stats.bestDay.points > 0 ? "+" + fmt(stats.bestDay.points) : "—",
+      sub: stats.bestDay.date ? fmtDateShort(stats.bestDay.date) : "Sin registros positivos",
+      cls: "",
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
+    },
+    {
+      label: "Total registros",
+      value: fmt((currentPerson().records || []).length),
+      cls: "",
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`
+    }
+  ];
+  grid.innerHTML = items.map(it => `
+    <div class="stat">
+      <div class="stat-label">
+        <span class="stat-icon">${it.icon}</span>
+        ${esc(it.label)}
+      </div>
+      <div class="stat-value num ${it.cls || ""}">${esc(it.value)}</div>
+      ${it.sub ? `<div class="stat-sub">${esc(it.sub)}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+function renderCategories(person) {
+  const grid = $("#categories-grid");
+  const cats = person.categories || [];
+  grid.innerHTML = cats.map(c => {
+    const emoji = catEmoji(c.name);
+    const pts = c.points === null
+      ? `<span class="cat-pts crit">A criterio</span>`
+      : `<span class="cat-pts ${c.points >= 0 ? "pos" : "neg"} num">${c.points >= 0 ? "+" : ""}${fmt(c.points)}</span>`;
+    return `
+      <button type="button" class="cat-btn" data-name="${esc(c.name)}" aria-label="Registrar ${esc(c.name)}">
+        <span class="emoji" aria-hidden="true">${emoji}</span>
+        <span class="cat-name">${esc(c.name)}</span>
+        ${pts}
+      </button>
+    `;
+  }).join("");
+
+  // Listeners
+  $$(".cat-btn", grid).forEach(btn => {
+    btn.addEventListener("click", () => {
+      const name = btn.getAttribute("data-name");
+      const cat = person.categories.find(c => c.name === name);
+      if (!cat) return;
+      if (cat.points === null) {
+        openCritModal(cat);
+      } else {
+        submitRecord({
+          date: $("#reg-date").value,
+          category: cat.name,
+          points: cat.points,
+          reason: $("#reg-note").value.trim()
+        });
+      }
+    });
+  });
+}
+
+function renderCategorySummary(stats) {
+  const container = $("#category-summary");
+  const cats = Object.values(stats.byCat);
+  if (cats.length === 0) {
+    container.innerHTML = `
+      <div class="empty">
+        <div class="emoji">📊</div>
+        <h3>Sin datos todavía</h3>
+        <p>Empieza a registrar para ver el desglose por categoría.</p>
+      </div>`;
+    return;
+  }
+  // Ordenar por número de registros
+  cats.sort((a, b) => b.count - a.count);
+  const maxCount = Math.max(...cats.map(c => c.count));
+  container.innerHTML = cats.map(c => `
+    <div class="cat-row">
+      <span class="emoji" aria-hidden="true">${catEmoji(c.name)}</span>
+      <div class="info">
+        <div class="name">${esc(c.name)}</div>
+        <div class="bar"><div class="bar-fill" style="width: ${(c.count / maxCount) * 100}%"></div></div>
+        <div class="count">${fmt(c.count)} ${c.count === 1 ? "registro" : "registros"}</div>
+      </div>
+      <div class="points num ${c.points >= 0 ? "pos" : "neg"}">${c.points >= 0 ? "+" : ""}${fmt(c.points)}</div>
+    </div>
+  `).join("");
+}
+
+function renderHistory(person) {
+  const container = $("#history-list");
+  const recs = [...(person.records || [])].sort((a, b) => {
+    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    return b.id - a.id;
+  }).slice(0, 30);
+  if (recs.length === 0) {
+    container.innerHTML = `
+      <div class="empty">
+        <div class="emoji">🗒️</div>
+        <h3>Aún no hay registros</h3>
+        <p>Registra tu primer punto desde la sección de arriba.</p>
+      </div>`;
+    return;
+  }
+  container.innerHTML = recs.map(r => `
+    <article class="history-item" data-id="${r.id}">
+      <span class="emoji" aria-hidden="true">${catEmoji(r.category)}</span>
+      <div class="info">
+        <div class="cat-name">${esc(r.category)}</div>
+        ${r.reason ? `<div class="reason">${esc(r.reason)}</div>` : ""}
+        <div class="meta">
+          <span>${esc(fmtDateShort(r.date))}</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <div class="pts num ${r.points >= 0 ? "pos" : "neg"}">${r.points >= 0 ? "+" : ""}${fmt(r.points)}</div>
+        <button type="button" class="btn-delete" data-id="${r.id}" aria-label="Eliminar registro de ${esc(r.category)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    </article>
+  `).join("");
+
+  $$(".btn-delete", container).forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = Number(btn.getAttribute("data-id"));
+      const rec = person.records.find(r => r.id === id);
+      if (rec) openDeleteModal(rec);
+    });
+  });
+}
+
+/* ==========================================================================
+   GRÁFICOS (Chart.js)
+   ========================================================================== */
+let chartLine = null, chartBars = null;
+
+function getChartColors() {
+  const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return {
+    text: isDark ? "#b8bfbb" : "#4a5451",
+    grid: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+    pos: "#2f8f4f",
+    neg: "#c7523a",
+    forest: isDark ? "#3fa076" : "#1f5d3d",
+    gold: isDark ? "#e0b868" : "#c9a24f"
+  };
+}
+
+function renderCharts(stats) {
+  if (typeof Chart === "undefined") return;
+  const colors = getChartColors();
+  const labels = stats.series.labels.map(fmtDateShort);
+
+  // Destruir instancias previas para evitar memory leaks
+  if (chartLine) { chartLine.destroy(); chartLine = null; }
+  if (chartBars) { chartBars.destroy(); chartBars = null; }
+
+  const commonOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "rgba(23, 31, 27, 0.95)",
+        titleColor: "#fff",
+        bodyColor: "#fff",
+        borderColor: "rgba(255,255,255,0.1)",
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+        titleFont: { family: "Manrope, system-ui", weight: "600" },
+        bodyFont: { family: "Manrope, system-ui" },
+        callbacks: {
+          label: (ctx) => {
+            const val = ctx.parsed.y;
+            return `${ctx.dataset.label || ""}: ${val >= 0 ? "+" : ""}${fmt(val)} pts`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: colors.text, font: { family: "Manrope, system-ui", size: 10 }, maxRotation: 0, autoSkipPadding: 12 },
+        grid: { display: false },
+        border: { display: false }
+      },
+      y: {
+        ticks: { color: colors.text, font: { family: "Manrope, system-ui", size: 10 }, callback: (v) => fmt(v) },
+        grid: { color: colors.grid },
+        border: { display: false }
+      }
+    }
+  };
+
+  // Línea acumulada
+  const lineCtx = $("#chart-line").getContext("2d");
+  const gradient = lineCtx.createLinearGradient(0, 0, 0, 240);
+  gradient.addColorStop(0, colors.forest + "55");
+  gradient.addColorStop(1, colors.forest + "00");
+  chartLine = new Chart(lineCtx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Acumulado",
+        data: stats.series.accum,
+        borderColor: colors.forest,
+        backgroundColor: gradient,
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 0,
+        pointHitRadius: 10
+      }]
+    },
+    options: { ...commonOpts }
+  });
+
+  // Barras por día
+  const barColors = stats.series.daily.map(v => v >= 0 ? colors.pos : colors.neg);
+  chartBars = new Chart($("#chart-bars").getContext("2d"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Puntos",
+        data: stats.series.daily,
+        backgroundColor: barColors,
+        borderRadius: 4,
+        borderSkipped: false,
+        maxBarThickness: 18
+      }]
+    },
+    options: {
+      ...commonOpts,
+      plugins: {
+        ...commonOpts.plugins,
+        tooltip: {
+          ...commonOpts.plugins.tooltip,
+          callbacks: {
+            label: (ctx) => {
+              const val = ctx.parsed.y;
+              return `${val >= 0 ? "+" : ""}${fmt(val)} pts`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ==========================================================================
+   CONFETI
+   ========================================================================== */
+function triggerConfetti() {
+  const canvas = $("#confetti");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const particles = [];
+  const colors = ["#c9a24f", "#e0c07a", "#1f5d3d", "#2d7a52", "#fff5d1"];
+  for (let i = 0; i < 120; i++) {
+    particles.push({
+      x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+      y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 12,
+      vy: -Math.random() * 14 - 6,
+      g: 0.35,
+      size: Math.random() * 6 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * Math.PI * 2,
+      vr: (Math.random() - 0.5) * 0.3,
+      life: 1
+    });
+  }
+  let frame;
+  const start = performance.now();
+  function step(now) {
+    const elapsed = now - start;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += p.g;
+      p.rot += p.vr;
+      p.life = Math.max(0, 1 - elapsed / 3500);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+      ctx.restore();
+    });
+    if (elapsed < 4000) {
+      frame = requestAnimationFrame(step);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  frame = requestAnimationFrame(step);
+  // Respetar prefers-reduced-motion
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    cancelAnimationFrame(frame);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
+/* ==========================================================================
+   SELECTOR DE PERSONA
+   ========================================================================== */
+function renderPersonSelector() {
+  const container = $(".person-selector");
+  const pill = $("#selector-pill");
+  // Eliminar botones previos
+  $$(".person-btn", container).forEach(b => b.remove());
+
+  state.persons.forEach(p => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "person-btn";
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", p.key === state.selectedKey ? "true" : "false");
+    btn.setAttribute("data-key", p.key);
+    btn.innerHTML = `
+      <span class="avatar">${esc(p.name.charAt(0).toUpperCase())}</span>
+      <span class="person-name">${esc(p.name)}</span>
+    `;
+    btn.addEventListener("click", () => {
+      state.selectedKey = p.key;
+      renderPersonSelector();
+      render();
+    });
+    container.appendChild(btn);
+  });
+
+  // Posicionar pill
+  requestAnimationFrame(() => {
+    const active = container.querySelector('.person-btn[aria-selected="true"]');
+    if (active) {
+      pill.style.width = active.offsetWidth + "px";
+      pill.style.transform = `translateX(${active.offsetLeft - 4}px)`;
+    }
+  });
+}
+
+/* ==========================================================================
+   INICIALIZACIÓN
+   ========================================================================== */
+async function init() {
+  // Header scroll detection
+  const header = $("#header");
+  const onScroll = () => {
+    if (window.scrollY > 10) header.classList.add("scrolled");
+    else header.classList.remove("scrolled");
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  // Fecha por defecto
+  $("#reg-date").value = state.today;
+  $("#reg-date").max = state.today; // no permitir fechas futuras por defecto (pero se puede cambiar en manual)
+
+  // Botón registro manual
+  $("#btn-manual").addEventListener("click", openManualModal);
+
+  // Resize para redibujar charts
+  let resizeT;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => {
+      if (chartLine) chartLine.resize();
+      if (chartBars) chartBars.resize();
+      // Redimensionar confetti canvas
+      const cv = $("#confetti");
+      if (cv) { cv.width = window.innerWidth; cv.height = window.innerHeight; }
+    }, 150);
+  });
+
+  // Cargar datos
+  try {
+    const data = await apiGetAll();
+    state.today = data.today || todayISO();
+    state.persons = data.persons || [];
+    state.selectedKey = state.persons[0]?.key || null;
+    state.loaded = true;
+
+    // Ocultar loader, mostrar dashboard
+    $("#initial-loading").classList.add("hidden");
+    $("#dashboard").classList.remove("hidden");
+
+    // Renderizar selector y dashboard
+    renderPersonSelector();
+    render();
+
+    if (MOCK.enabled) {
+      toast("Modo demo activo. Los cambios no se guardan.", "info", 4000);
+    }
+  } catch (e) {
+    $("#initial-loading").innerHTML = `
+      <div class="empty" style="padding: 24px;">
+        <div class="emoji">⚠️</div>
+        <h3>Error al cargar</h3>
+        <p>${esc(e.message || "No se pudieron obtener los datos.")}</p>
+      </div>
+    `;
+    toast(e.message || "Error al cargar", "error", 5000);
+  }
+}
+
+// Cambio de tema dinámico (re-renderizar charts con nuevos colores)
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (state.loaded) {
+    const person = currentPerson();
+    if (person) renderCharts(computeStats(person));
+  }
+});
+
+// Arranque
+document.addEventListener("DOMContentLoaded", init);
+
+</script>
+</body>
+</html>

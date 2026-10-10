@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: registro-de-puntos
+    env: static
+    buildCommand: ""
+    staticPublishPath: .
+    pullRequestPreviewsEnabled: false

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro de puntos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --green:#1f5d3d; --green2:#2f8a5c; --gold:#c9a24f; --ink:#1d2a24; --mut:#7b857f;
+    --bg:#f3f1ea; --card:#fff; --line:#e7e3d6; --pos:#1e7a2f; --neg:#c0392b;
+    --posbg:#eaf6ec; --negbg:#fdeeee; --r:18px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--ink); line-height:1.5; padding:20px 16px 60px; }
+  .wrap { max-width:1180px; margin:0 auto; }
+  h1,h2,.serif { font-family:'Fraunces',Georgia,serif; letter-spacing:-.3px; }
+  .card { background:var(--card); border-radius:var(--r); border:1px solid var(--line); box-shadow:0 1px 2px rgba(20,40,30,.04),0 8px 24px rgba(20,40,30,.05); }
+
+  /* Hero */
+  .hero { background:linear-gradient(135deg,#17492f 0%,#1f5d3d 55%,#2f7a52 100%); color:#fff; border-radius:24px; padding:28px 32px; position:relative; overflow:hidden; }
+  .hero:after { content:''; position:absolute; right:-80px; top:-80px; width:280px; height:280px; border-radius:50%; background:radial-gradient(circle,rgba(201,162,79,.35),transparent 70%); }
+  .hero-top { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; position:relative; z-index:1; }
+  .eyebrow { font-size:11px; letter-spacing:2px; text-transform:uppercase; opacity:.7; font-weight:600; }
+  .hero h1 { font-size:34px; margin-top:4px; }
+  .today { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2); padding:8px 14px; border-radius:999px; font-size:13px; font-weight:500; }
+  .reward { margin-top:18px; background:linear-gradient(90deg,#c9a24f,#e0c27a); color:#2a2208; padding:12px 18px; border-radius:14px; font-weight:600; font-size:14px; display:flex; gap:10px; align-items:center; position:relative; z-index:1; }
+  .seg { display:inline-flex; background:rgba(0,0,0,.22); padding:4px; border-radius:14px; margin-top:20px; gap:4px; position:relative; z-index:1; flex-wrap:wrap; }
+  .seg button { border:0; background:transparent; color:rgba(255,255,255,.8); padding:10px 22px; border-radius:11px; font:600 14px 'Inter'; cursor:pointer; display:flex; align-items:center; gap:10px; transition:.2s; }
+  .seg button .av { width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,.2); display:grid; place-items:center; font-size:12px; }
+  .seg button.on { background:#fff; color:var(--green); box-shadow:0 4px 12px rgba(0,0,0,.18); }
+  .seg button.on .av { background:var(--green); color:#fff; }
+
+  /* Progreso */
+  .grid2 { display:grid; grid-template-columns:1.25fr 1fr; gap:18px; margin-top:18px; }
+  .prog { padding:26px 28px; display:flex; gap:28px; align-items:center; }
+  .ring { position:relative; width:150px; height:150px; flex:none; }
+  .ring svg { transform:rotate(-90deg); }
+  .ring .c { position:absolute; inset:0; display:grid; place-content:center; text-align:center; }
+  .ring .p { font:700 32px 'Fraunces'; color:var(--green); line-height:1; }
+  .ring .l { font-size:10px; letter-spacing:1.5px; color:var(--mut); font-weight:600; margin-top:4px; }
+  .prog-info { flex:1; min-width:0; }
+  .lbl { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--mut); font-weight:600; }
+  .total { font:700 42px 'Fraunces'; line-height:1.1; margin:4px 0 6px; }
+  .total small { font:500 18px 'Inter'; color:var(--mut); }
+  .badge { display:inline-block; background:#fbf3dc; color:#8a6a14; font-weight:600; font-size:12px; padding:5px 12px; border-radius:999px; }
+  .bar { position:relative; height:10px; background:#eee9da; border-radius:6px; margin:22px 0 22px; }
+  .bar > i { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--green),var(--green2)); border-radius:6px; transition:width .8s cubic-bezier(.2,.8,.2,1); }
+  .bar b { position:absolute; top:-3px; width:2px; height:16px; background:#cfc9b4; }
+  .bar b span { position:absolute; top:20px; left:50%; transform:translateX(-50%); font:600 10px 'Inter'; color:var(--mut); }
+  .left { font-size:13px; color:var(--mut); }
+  .left strong { color:var(--neg); }
+
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .stat { padding:16px 18px; }
+  .stat .v { font:700 26px 'Fraunces'; margin-top:2px; }
+  .stat .s { font-size:12px; color:var(--mut); }
+  .pos { color:var(--pos); } .neg { color:var(--neg); }
+
+  /* Secciones */
+  .sec { padding:24px 26px; margin-top:18px; }
+  .sec h2 { font-size:20px; margin-bottom:4px; }
+  .sec .sub { font-size:13px; color:var(--mut); margin-bottom:16px; }
+  .tools { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .tools .f { flex:1; min-width:170px; }
+  .tools label { display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); font-weight:600; margin-bottom:5px; }
+  input,select { width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:11px; font:500 14px 'Inter'; background:#fff; color:var(--ink); }
+  input:focus,select:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(31,93,61,.1); }
+  .chips { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+  .chip { border:1.5px solid var(--line); background:#fff; border-radius:14px; padding:14px 16px; text-align:left; cursor:pointer; display:flex; gap:12px; align-items:center; font-family:inherit; transition:.2s; }
+  .chip:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(20,40,30,.1); }
+  .chip:active { transform:scale(.98); }
+  .chip .ic { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; font-size:21px; flex:none; background:#f3f1ea; }
+  .chip .n { font-size:13.5px; font-weight:600; line-height:1.25; color:var(--ink); }
+  .chip .pt { font:700 15px 'Inter'; margin-top:2px; }
+  .chip.p { background:linear-gradient(135deg,#f6fcf7,#fff); border-color:#cfe9d3; } .chip.p .ic { background:var(--posbg); } .chip.p .pt { color:var(--pos); }
+  .chip.n2 { background:linear-gradient(135deg,#fff6f6,#fff); border-color:#f3d2d0; } .chip.n2 .ic { background:var(--negbg); } .chip.n2 .pt { color:var(--neg); }
+  .chip:disabled { opacity:.55; cursor:progress; transform:none; }
+  .btn { border:0; background:linear-gradient(135deg,var(--green),var(--green2)); color:#fff; padding:12px 20px; border-radius:11px; font:600 14px 'Inter'; cursor:pointer; box-shadow:0 6px 16px rgba(31,93,61,.25); }
+  .btn.ghost { background:#fff; color:var(--green); border:1.5px solid var(--green); box-shadow:none; }
+  .btn:disabled { opacity:.6; cursor:progress; }
+
+  .grid3 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .chart { position:relative; height:260px; }
+
+  /* Tabla categorías */
+  .row { display:grid; grid-template-columns:1.6fr 70px 1.2fr 80px; gap:12px; align-items:center; padding:11px 0; border-bottom:1px solid #f0ede2; font-size:14px; }
+  .row.h { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); font-weight:600; padding-top:0; }
+  .row .t { height:8px; background:#f0ede2; border-radius:5px; overflow:hidden; }
+  .row .t i { display:block; height:100%; border-radius:5px; }
+  .row .num { text-align:right; font-weight:700; }
+  .row .cnt { color:var(--mut); text-align:center; }
+
+  /* Historial */
+  .hist { max-height:430px; overflow:auto; margin:0 -8px; padding:0 8px; }
+  .h-it { display:flex; align-items:center; gap:12px; padding:12px 6px; border-bottom:1px solid #f0ede2; }
+  .h-it .ic { width:38px; height:38px; border-radius:11px; display:grid; place-items:center; background:#f3f1ea; font-size:18px; flex:none; }
+  .h-it .m { flex:1; min-width:0; }
+  .h-it .m b { font-size:14px; font-weight:600; display:block; }
+  .h-it .m span { font-size:12px; color:var(--mut); }
+  .h-it .pts { font:700 16px 'Inter'; }
+  .x { border:0; background:#f6f3ea; color:var(--mut); width:30px; height:30px; border-radius:9px; cursor:pointer; font-size:14px; }
+  .x:hover { background:var(--negbg); color:var(--neg); }
+  .empty { text-align:center; color:var(--mut); padding:32px 10px; font-style:italic; }
+
+  /* Modal, toast, loader */
+  .modal { position:fixed; inset:0; background:rgba(15,30,22,.5); display:none; place-items:center; padding:16px; z-index:50; backdrop-filter:blur(3px); }
+  .modal.on { display:grid; }
+  .box { background:#fff; border-radius:20px; padding:26px; width:100%; max-width:420px; box-shadow:0 30px 80px rgba(0,0,0,.3); }
+  .box h3 { font:700 20px 'Fraunces'; margin-bottom:14px; }
+  .box .f { margin-bottom:12px; }
+  .box .f label { display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); font-weight:600; margin-bottom:5px; }
+  .box .acts { display:flex; gap:10px; margin-top:18px; justify-content:flex-end; }
+  .toast { position:fixed; left:50%; bottom:28px; transform:translate(-50%,120px); background:var(--green); color:#fff; padding:13px 22px; border-radius:12px; font-weight:600; font-size:14px; box-shadow:0 12px 30px rgba(0,0,0,.2); transition:.4s; z-index:60; max-width:92vw; text-align:center; }
+  .toast.on { transform:translate(-50%,0); } .toast.err { background:var(--neg); }
+  #loader { position:fixed; inset:0; background:var(--bg); display:grid; place-items:center; z-index:100; color:var(--mut); font-weight:500; }
+  .spin { width:34px; height:34px; border:3px solid #ddd8c8; border-top-color:var(--green); border-radius:50%; animation:sp 0.8s linear infinite; margin:0 auto 12px; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+  body.busy:before { content:''; position:fixed; top:0; left:0; height:3px; width:100%; background:linear-gradient(90deg,var(--gold),var(--green2)); animation:ld 1s ease-in-out infinite; z-index:90; }
+  @keyframes ld { 0%{transform:scaleX(0);transform-origin:left} 50%{transform:scaleX(1);transform-origin:left} 51%{transform-origin:right} 100%{transform:scaleX(0);transform-origin:right} }
+
+  @media (max-width:860px) {
+    .grid2,.grid3 { grid-template-columns:1fr; }
+    .prog { flex-direction:column; text-align:center; }
+    .hero { padding:22px 20px; } .hero h1 { font-size:27px; }
+    .row { grid-template-columns:1.4fr 50px 1fr 64px; font-size:13px; }
+  }
+</style>
+</head>
+<body>
+<div id="loader"><div><div class="spin"></div>Cargando datos…</div></div>
+<div class="wrap" id="app" style="display:none">
+
+  <div class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="eyebrow">Sistema de puntos</div>
+        <h1 id="title"></h1>
+      </div>
+      <div class="today" id="today"></div>
+    </div>
+    <div class="reward">🏆 <span id="reward"></span></div>
+    <div class="seg" id="seg"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card prog">
+      <div class="ring">
+        <svg width="150" height="150" viewBox="0 0 150 150">
+          <circle cx="75" cy="75" r="64" fill="none" stroke="#eee9da" stroke-width="13"/>
+          <circle id="ringC" cx="75" cy="75" r="64" fill="none" stroke="url(#g)" stroke-width="13" stroke-linecap="round" stroke-dasharray="402.1" stroke-dashoffset="402.1" style="transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)"/>
+          <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1f5d3d"/><stop offset="1" stop-color="#c9a24f"/></linearGradient></defs>
+        </svg>
+        <div class="c"><div class="p" id="pct">0%</div><div class="l">COMPLETADO</div></div>
+      </div>
+      <div class="prog-info">
+        <div class="lbl">Total acumulado</div>
+        <div class="total"><span id="total">0</span> <small>/ <span id="goal">0</span></small></div>
+        <span class="badge" id="level"></span>
+        <div class="bar" id="bar"><i id="fill"></i><b style="left:25%"><span>25%</span></b><b style="left:50%"><span>50%</span></b><b style="left:75%"><span>75%</span></b></div>
+        <div class="left" id="left"></div>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="card sec">
+    <h2>Registro rápido</h2>
+    <div class="sub">Toca una categoría para registrarla en la fecha elegida.</div>
+    <div class="tools">
+      <div class="f"><label>Fecha</label><input type="date" id="date"></div>
+      <div class="f" style="flex:2"><label>Nota (opcional)</label><input type="text" id="note" placeholder="Ej: sin hablar del tema en toda la noche"></div>
+      <div class="f" style="flex:none;align-self:flex-end"><button class="btn ghost" onclick="openManual()">＋ Registro manual</button></div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="card sec">
+    <h2>Evolución · últimos 30 días</h2>
+    <div class="sub">Total acumulado y puntos de cada día.</div>
+    <div class="grid3">
+      <div class="chart"><canvas id="cA"></canvas></div>
+      <div class="chart"><canvas id="cD"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid3" style="margin-top:18px">
+    <div class="card sec" style="margin-top:0">
+      <h2>Resumen por categoría</h2>
+      <div class="sub">Cuánto aporta cada una al total.</div>
+      <div id="cats"></div>
+    </div>
+    <div class="card sec" style="margin-top:0">
+      <h2>Últimos registros</h2>
+      <div class="sub">Puedes eliminar cualquier registro.</div>
+      <div class="hist" id="hist"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="box" id="box"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const nf = n => Number(n).toLocaleString('es-CO');
+const sg = n => (n > 0 ? '+' : '') + nf(n);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const pd = s => new Date(s + 'T12:00:00');
+const show = s => pd(s).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+
+let S = { persons: [], today: '', cur: 0 }, busy = false, cA, cD;
+
+google.script.run.withSuccessHandler(init).withFailureHandler(e => {
+  $('loader').innerHTML = '<div>⚠️ ' + esc(e.message || e) + '</div>';
+}).getAll();
+
+function init(d) {
+  S.persons = d.persons; S.today = d.today;
+  $('date').value = d.today;
+  $('loader').style.display = 'none';
+  if (!S.persons.length) {
+    document.body.innerHTML = '<div style="padding:60px;text-align:center">Aún no hay hojas. En tu Google Sheet ejecuta <b>Puntos › Configuración inicial</b>.</div>';
+    return;
+  }
+  $('app').style.display = 'block';
+  render();
+}
+
+const P = () => S.persons[S.cur];
+
+function icon(n) {
+  n = n.toLowerCase();
+  if (n.includes('instal')) return '📱';
+  if (n.includes('redes')) return '📵';
+  if (n.includes('sexual')) return '🤐';
+  if (n.includes('chiste mal') || n.includes('chistes mal')) return '🙄';
+  if (n.includes('chiste')) return '😄';
+  if (n.includes('ortogr')) return '✏️';
+  if (n.includes('novia')) return '💘';
+  if (n.includes('entrar')) return '🏁';
+  if (n.includes('gym')) return '🏋️';
+  if (n.includes('ausencia')) return '🚫';
+  return '⭐';
+}
+
+function level(p) {
+  return p >= 1 ? '🏆 Meta alcanzada' : p >= .75 ? '🏁 Recta final' : p >= .5 ? '⚡ A mitad de camino' : p >= .25 ? '🔥 En marcha' : '🌱 Comenzando';
+}
+
+function stats(p) {
+  const by = {}; let total = 0, gained = 0, lost = 0;
+  p.records.forEach(r => { total += r.points; r.points > 0 ? gained += r.points : lost += r.points; by[r.date] = (by[r.date] || 0) + r.points; });
+  let best = null; Object.keys(by).forEach(k => { if (!best || by[k] > best.v) best = { d: k, v: by[k] }; });
+  let streak = 0, d = pd(S.today); if (!(by[ymd(d)] > 0)) d.setDate(d.getDate() - 1);
+  while (by[ymd(d)] > 0) { streak++; d.setDate(d.getDate() - 1); }
+  return { by, total, gained, lost, best, streak, today: by[S.today] || 0,
+    todayN: p.records.filter(r => r.date === S.today).length,
+    pct: p.goal > 0 ? Math.max(0, Math.min(1, total / p.goal)) : 0 };
+}
+
+function render() {
+  const p = P(), s = stats(p);
+  $('title').textContent = 'Camino a los ' + nf(p.goal) + ' puntos';
+  $('today').textContent = show(S.today);
+  $('reward').textContent = 'Recompensa al llegar a la meta: ' + p.reward;
+  $('seg').innerHTML = S.persons.map((x, i) =>
+    '<button class="' + (i === S.cur ? 'on' : '') + '" onclick="pick(' + i + ')"><span class="av">' + esc(x.name.charAt(0)) + '</span>' + esc(x.name) + '</button>').join('');
+
+  $('total').textContent = nf(s.total); $('goal').textContent = nf(p.goal);
+  $('pct').textContent = Math.round(s.pct * 100) + '%';
+  $('ringC').style.strokeDashoffset = 402.1 * (1 - s.pct);
+  $('fill').style.width = s.pct * 100 + '%';
+  $('level').textContent = level(s.pct);
+  $('left').innerHTML = s.total >= p.goal ? '🎉 ¡Meta cumplida! Reclama la recompensa.'
+    : 'Faltan <strong>' + nf(p.goal - s.total) + '</strong> puntos para la recompensa.';
+
+  $('stats').innerHTML = [
+    ['Puntos ganados', '<span class="pos">' + sg(s.gained) + '</span>', 'suman al total'],
+    ['Puntos perdidos', '<span class="neg">' + sg(s.lost) + '</span>', 'restan del total'],
+    ['Hoy', '<span class="' + (s.today > 0 ? 'pos' : s.today < 0 ? 'neg' : '') + '">' + sg(s.today) + '</span>', s.todayN + ' registros hoy'],
+    ['Racha', s.streak + (s.streak === 1 ? ' día' : ' días'), 'días seguidos sumando'],
+    ['Mejor día', s.best ? sg(s.best.v) : '—', s.best ? show(s.best.d) : 'sin registros'],
+    ['Registros', nf(p.records.length), 'en total']
+  ].map(x => '<div class="card stat"><div class="lbl">' + x[0] + '</div><div class="v">' + x[1] + '</div><div class="s">' + x[2] + '</div></div>').join('');
+
+  $('chips').innerHTML = p.categories.map((c, i) =>
+    '<button class="chip ' + (c.points === null ? '' : c.points > 0 ? 'p' : 'n2') + '" onclick="tap(' + i + ')"><span class="ic">' + icon(c.name) +
+    '</span><span><div class="n">' + esc(c.name) + '</div><div class="pt">' + (c.points === null ? 'a criterio' : sg(c.points)) + '</div></span></button>').join('');
+
+  const cs = {}; p.records.forEach(r => { const o = cs[r.category] || (cs[r.category] = { n: 0, p: 0 }); o.n++; o.p += r.points; });
+  const names = p.categories.map(c => c.name); Object.keys(cs).forEach(k => { if (names.indexOf(k) < 0) names.push(k); });
+  const mx = Math.max(1, ...names.map(k => Math.abs((cs[k] || { p: 0 }).p)));
+  $('cats').innerHTML = '<div class="row h"><div>Categoría</div><div style="text-align:center">Reg.</div><div></div><div style="text-align:right">Puntos</div></div>' +
+    names.map(k => { const o = cs[k] || { n: 0, p: 0 };
+      return '<div class="row"><div>' + icon(k) + ' ' + esc(k) + '</div><div class="cnt">' + o.n + '</div><div class="t"><i style="width:' + Math.abs(o.p) / mx * 100 + '%;background:' + (o.p < 0 ? 'var(--neg)' : 'var(--green2)') + '"></i></div><div class="num ' + (o.p > 0 ? 'pos' : o.p < 0 ? 'neg' : '') + '">' + sg(o.p) + '</div></div>'; }).join('');
+
+  const hs = p.records.slice().sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id).slice(0, 40);
+  $('hist').innerHTML = hs.length ? hs.map(r =>
+    '<div class="h-it"><div class="ic">' + icon(r.category) + '</div><div class="m"><b>' + esc(r.category) + '</b><span>' + show(r.date) + (r.reason ? ' · ' + esc(r.reason) : '') +
+    '</span></div><div class="pts ' + (r.points > 0 ? 'pos' : r.points < 0 ? 'neg' : '') + '">' + sg(r.points) + '</div><button class="x" title="Eliminar" onclick="askDel(' + r.id + ')">✕</button></div>').join('')
+    : '<div class="empty">Sin registros todavía.</div>';
+
+  charts(p);
+}
+
+function charts(p) {
+  const by = {}, labels = [], acc = [], day = [];
+  p.records.forEach(r => by[r.date] = (by[r.date] || 0) + r.points);
+  const start = pd(S.today); start.setDate(start.getDate() - 29);
+  let run = 0; const s0 = ymd(start);
+  p.records.forEach(r => { if (r.date < s0) run += r.points; });
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const k = ymd(d), v = by[k] || 0; run += v;
+    labels.push(d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })); acc.push(run); day.push(v);
+  }
+  const base = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+    scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 8, color: '#7b857f' } },
+              y: { grid: { color: '#f0ede2' }, ticks: { font: { size: 10 }, color: '#7b857f' } } } };
+  if (cA) cA.destroy(); if (cD) cD.destroy();
+  cA = new Chart($('cA'), { type: 'line', data: { labels, datasets: [{ data: acc, borderColor: '#1f5d3d', backgroundColor: 'rgba(31,93,61,.1)', fill: true, tension: .35, pointRadius: 0, pointHoverRadius: 5, borderWidth: 2.5 }] },
+    options: Object.assign({}, base, { interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, title: { display: true, text: 'Total acumulado', font: { size: 13, weight: '600' }, color: '#1d2a24' } } }) });
+  cD = new Chart($('cD'), { type: 'bar', data: { labels, datasets: [{ data: day, backgroundColor: day.map(v => v >= 0 ? 'rgba(47,138,92,.75)' : 'rgba(192,57,43,.75)'), borderRadius: 5 }] },
+    options: Object.assign({}, base, { plugins: { legend: { display: false }, title: { display: true, text: 'Puntos por día', font: { size: 13, weight: '600' }, color: '#1d2a24' } } }) });
+}
+
+function pick(i) { S.cur = i; render(); }
+
+function setBusy(v) {
+  busy = v; document.body.classList.toggle('busy', v);
+  document.querySelectorAll('.chip,.btn,.x').forEach(b => b.disabled = v);
+}
+function toast(m, err) {
+  const t = $('toast'); t.textContent = m; t.className = 'toast on' + (err ? ' err' : '');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.className = 'toast', 2800);
+}
+
+function send(fnName, args, okMsg) {
+  if (busy) return;
+  setBusy(true);
+  const runner = google.script.run
+    .withSuccessHandler(res => { S.persons[S.cur] = res; setBusy(false); render(); closeModal(); toast(okMsg); })
+    .withFailureHandler(e => { setBusy(false); toast(e.message || String(e), true); });
+  runner[fnName].apply(runner, args);
+}
+
+function tap(i) {
+  const c = P().categories[i];
+  if (c.points === null) return openManual(c.name);
+  send('addRecord', [P().key, { date: $('date').value, category: c.name, points: c.points, reason: $('note').value }], '✔ ' + c.name + ' (' + sg(c.points) + ')');
+  $('note').value = '';
+}
+
+function openModal(html) { $('box').innerHTML = html; $('modal').classList.add('on'); }
+function closeModal() { $('modal').classList.remove('on'); }
+$('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+
+function openManual(cat) {
+  const p = P();
+  openModal('<h3>Registro manual</h3>' +
+    '<div class="f"><label>Categoría</label><select id="mC">' + p.categories.map(c => '<option value="' + esc(c.name) + '"' + (c.name === cat ? ' selected' : '') + '>' + esc(c.name) + (c.points === null ? '' : ' (' + sg(c.points) + ')') + '</option>').join('') + '</select></div>' +
+    '<div class="f"><label>Puntos (vacío = valor por defecto)</label><input type="number" id="mP" placeholder="Ej: 25 o -10"></div>' +
+    '<div class="f"><label>Fecha</label><input type="date" id="mD" value="' + esc($('date').value) + '"></div>' +
+    '<div class="f"><label>Motivo (opcional)</label><input type="text" id="mR" value="' + esc($('note').value) + '"></div>' +
+    '<div class="acts"><button class="btn ghost" onclick="closeModal()">Cancelar</button><button class="btn" onclick="saveManual()">Registrar</button></div>');
+  if (cat) setTimeout(() => $('mP').focus(), 50);
+}
+
+function saveManual() {
+  send('addRecord', [P().key, { date: $('mD').value, category: $('mC').value, points: $('mP').value, reason: $('mR').value }], '✔ Registro añadido');
+}
+
+function askDel(id) {
+  openModal('<h3>¿Eliminar este registro?</h3><div style="color:var(--mut);font-size:14px">Esta acción lo quita de la hoja y recalcula los totales.</div>' +
+    '<div class="acts"><button class="btn ghost" onclick="closeModal()">Cancelar</button><button class="btn" style="background:var(--neg);box-shadow:none" onclick="doDel(' + id + ')">Eliminar</button></div>');
+}
+function doDel(id) { send('deleteRecord', [P().key, id], 'Registro eliminado'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,617 @@
+/**
+ * REGISTRO DE PUNTOS v4 - Google Sheets + Apps Script
+ *
+ * Todo funciona dentro del Sheet, sin implementar nada:
+ *  - Menú Puntos > Abrir panel: dashboard (Index.html) en una ventana dentro del Sheet.
+ *  - Hoja "Configuración": nombres, metas, recompensas, categorías y puntos (editable).
+ *  - Una hoja dashboard por persona: tarjetas, nivel, progreso, gráficos, acciones rápidas y registro.
+ *  - Hoja oculta "_datos": cálculos para los gráficos.
+ *
+ * Zona horaria recomendada: America/Bogota (Configuración del proyecto y de la hoja).
+ */
+
+const CONFIG_SHEET = 'Configuración';
+const DATA_SHEET = '_datos';
+const LOG_ROWS = 500;     // filas del registro
+const LOG_START = 48;     // primera fila de datos en la hoja de cada persona
+const CAT_START = 9;      // primera fila de categorías en Configuración
+const CAT_ROWS = 16;      // categorías máximas por persona en Configuración
+const SLOTS = 10;         // categorías que muestra la hoja dashboard
+const REF_START = 16;     // primera fila de resumen / acciones rápidas
+const SHEET_VER = 4;
+
+const COLORS = {
+  page: '#f3f1ea', dark: '#1f5d3d', darker: '#17492f', gold: '#c9a24f', cream: '#f6efd9', input: '#fff6d6',
+  green: '#d5ecd0', greenText: '#1e7a2f', red: '#f8d7d7', redText: '#b3261e',
+  line: '#ddd8c8', muted: '#7a7a6a', zebra: '#faf8f1'
+};
+
+/** cats: [nombre, puntos (null = a criterio), grupo (solo 1 registro por día dentro del grupo)] */
+const DEFAULTS = [
+  {
+    key: 'p1', index: 0, col: 1, name: 'Leonardo', goal: 2000,
+    reward: 'Un juego con valor máximo de 200K',
+    cats: [
+      ['Día sin redes sociales', 50, 'sinRedes'],
+      ['Chiste bueno', 15, ''],
+      ['Instaló redes sociales', -400, ''],
+      ['Error ortográfico', -15, ''],
+      ['Conseguir novia', 150, ''],
+      ['Entrar al gym', 100, ''],
+      ['Día gym', 20, 'gym'],
+      ['Ausencia', -50, ''],
+      ['Otro', null, '']
+    ]
+  },
+  {
+    key: 'p2', index: 1, col: 5, name: 'Felipe', goal: 2000,
+    reward: '(Define la recompensa)',
+    cats: [
+      ['Día sin temas sexuales (todos en Discord)', 150, 'sinTemas'],
+      ['Día sin temas sexuales (solo 2 personas)', 100, 'sinTemas'],
+      ['Chiste malo', -30, ''],
+      ['Error ortográfico', -30, ''],
+      ['Conseguir novia', 150, ''],
+      ['Entrar al gym', 100, ''],
+      ['Día gym', 20, 'gym'],
+      ['Ausencia', -50, ''],
+      ['Otro', null, '']
+    ]
+  }
+];
+
+/* =====================  MENÚ  ===================== */
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Puntos')
+    .addItem('📊 Abrir panel', 'openPanel')
+    .addSeparator()
+    .addItem('⚙️ Configuración inicial / actualizar hojas', 'setup')
+    .addToUi();
+}
+
+function openPanel() {
+  PropertiesService.getScriptProperties().setProperty('SS_ID', SpreadsheetApp.getActive().getId());
+  const html = HtmlService.createHtmlOutputFromFile('Index').setWidth(1180).setHeight(780);
+  SpreadsheetApp.getUi().showModelessDialog(html, 'Registro de puntos');
+}
+
+/** Crea o actualiza todo. Si ya había hojas de una versión anterior, conserva sus registros. */
+function setup() {
+  const ss = SpreadsheetApp.getActive();
+  PropertiesService.getScriptProperties().setProperty('SS_ID', ss.getId());
+  if (!ss.getSheetByName(CONFIG_SHEET)) createConfig_();
+  ensureData_();
+
+  let first = null;
+  DEFAULTS.forEach(d => {
+    const old = findSheet_(d);
+    if (old && sheetVer_(old) >= SHEET_VER) { first = first || old; return; }
+    let recs = [];
+    if (old) { recs = readOldRecords_(old); ss.deleteSheet(old); }
+    const sh = createPersonSheet_(d, recs);
+    first = first || sh;
+  });
+
+  const ds = ss.getSheetByName(DATA_SHEET);
+  if (first) ss.setActiveSheet(first);
+  if (ds && !ds.isSheetHidden()) ds.hideSheet();
+  SpreadsheetApp.getUi().alert('Listo. Usa el menú Puntos > Abrir panel para registrar puntos.');
+}
+
+/* =====================  UTILIDADES  ===================== */
+
+function ss_() {
+  let s = null;
+  try { s = SpreadsheetApp.getActive(); } catch (e) { s = null; }
+  return s || SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SS_ID'));
+}
+function tz_() { return ss_().getSpreadsheetTimeZone(); }
+function fmt_(d) { return Utilities.formatDate(d, tz_(), 'yyyy-MM-dd'); }
+function parseDate_(s) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s || '')) throw new Error('Fecha no válida.');
+  const p = s.split('-').map(Number);
+  return new Date(p[0], p[1] - 1, p[2]);
+}
+function today_() { return parseDate_(fmt_(new Date())); }
+function toast_(msg) { try { ss_().toast(msg, 'Puntos', 4); } catch (e) { /* ignorar */ } }
+function colL_(n) { return String.fromCharCode(64 + n); }
+function qs_(name) { return "'" + name.replace(/'/g, "''") + "'!"; }
+
+function withLock_(fn) {
+  let lock = null;
+  try { lock = LockService.getDocumentLock(); lock.waitLock(10000); } catch (e) { lock = null; }
+  try { return fn(); } finally { if (lock) { try { lock.releaseLock(); } catch (e) { /* ignorar */ } } }
+}
+
+function defByKey_(key) { return DEFAULTS.find(d => d.key === key) || null; }
+
+// Marca invisible en A3: "tracker:p1:v4" (sin sufijo = versión antigua)
+function getKey_(sh) {
+  const v = sh.getRange('A3').getValue();
+  return (typeof v === 'string' && v.indexOf('tracker:') === 0) ? v.split(':')[1] : null;
+}
+function sheetVer_(sh) {
+  const v = String(sh.getRange('A3').getValue());
+  const m = v.match(/:v(\d+)$/);
+  return m ? Number(m[1]) : 3;
+}
+function findSheet_(def) {
+  return ss_().getSheets().find(s => getKey_(s) === def.key) || null;
+}
+
+function readConfig_(def) {
+  const cs = ss_().getSheetByName(CONFIG_SHEET);
+  if (!cs) throw new Error('Falta la hoja "Configuración". Ejecuta Puntos > Configuración inicial.');
+  const p = cs.getRange(4 + def.index, 1, 1, 3).getValues()[0];
+  const cats = cs.getRange(CAT_START, def.col, CAT_ROWS, 3).getValues()
+    .filter(r => String(r[0]).trim() !== '')
+    .map(r => ({
+      name: String(r[0]).trim(),
+      points: typeof r[1] === 'number' ? r[1] : null,
+      group: String(r[2] || '').trim() || null
+    }));
+  return { key: def.key, name: String(p[0] || def.name), goal: Number(p[1]) || 0, reward: String(p[2] || ''), categories: cats };
+}
+
+// Registros de una hoja antigua (busca la fila del encabezado "Fecha").
+function readOldRecords_(sh) {
+  const colB = sh.getRange(1, 2, Math.min(sh.getMaxRows(), 90), 1).getValues();
+  const h = colB.findIndex(r => r[0] === 'Fecha');
+  if (h < 0) return [];
+  const rows = Math.min(LOG_ROWS, sh.getMaxRows() - (h + 1));
+  return sh.getRange(h + 2, 2, rows, 4).getValues().filter(v => v[3] !== '');
+}
+
+/* =====================  HOJA CONFIGURACIÓN  ===================== */
+
+function createConfig_() {
+  const sh = ss_().insertSheet(CONFIG_SHEET);
+  const B = SpreadsheetApp.BorderStyle;
+  sh.setHiddenGridlines(true);
+  sh.setTabColor(COLORS.dark);
+  if (sh.getMaxColumns() > 7) sh.deleteColumns(8, sh.getMaxColumns() - 7);
+  [300, 100, 170, 24, 300, 100, 170].forEach((w, i) => sh.setColumnWidth(i + 1, w));
+  sh.getRange(1, 1, 40, 7).setFontFamily('Arial').setFontSize(10).setVerticalAlignment('middle').setBackground(COLORS.page);
+
+  sh.getRange('A1:G1').merge().setValue('Configuración')
+    .setBackground(COLORS.dark).setFontColor('#ffffff').setFontSize(20).setFontWeight('bold');
+  sh.setRowHeight(1, 50);
+  sh.getRange('A2:G2').merge().setWrap(true).setFontStyle('italic').setFontColor(COLORS.muted)
+    .setValue('Edita aquí nombres, metas, recompensas, categorías y puntos: las hojas y el panel se actualizan solos. ' +
+      'Puntos vacíos = a criterio. Grupo = solo se permite un registro por día dentro del mismo grupo.');
+  sh.setRowHeight(2, 40);
+
+  sh.getRange('A3:G3').setBackground(COLORS.dark).setFontColor('#ffffff').setFontWeight('bold');
+  sh.getRange('A3').setValue('Persona');
+  sh.getRange('B3').setValue('Meta (puntos)');
+  sh.getRange('C3:G3').merge().setValue('Recompensa al llegar a la meta');
+  DEFAULTS.forEach(d => {
+    const r = 4 + d.index;
+    sh.getRange(r, 1, 1, 2).setValues([[d.name, d.goal]]);
+    sh.getRange(r, 3, 1, 5).merge().setValue(d.reward);
+    sh.getRange(r, 1, 1, 7).setBackground('#ffffff')
+      .setBorder(true, true, true, true, false, false, COLORS.line, B.SOLID);
+    sh.getRange(r, 2).setBackground(COLORS.input).setNumberFormat('#,##0').setHorizontalAlignment('center');
+    sh.setRowHeight(r, 28);
+  });
+
+  sh.getRange('A7').setValue('CATEGORÍAS Y PUNTOS').setFontWeight('bold').setFontColor(COLORS.dark);
+  sh.getRange('A7:G7').setBorder(null, null, true, null, null, null, COLORS.gold, B.SOLID_MEDIUM);
+  sh.setRowHeight(7, 28);
+
+  DEFAULTS.forEach(d => {
+    const c = d.col;
+    sh.getRange(8, c).setFormula('=$A$' + (4 + d.index) + '&" · categoría"');
+    sh.getRange(8, c + 1).setValue('Puntos');
+    sh.getRange(8, c + 2).setValue('Grupo');
+    sh.getRange(8, c, 1, 3).setBackground(COLORS.dark).setFontColor('#ffffff').setFontWeight('bold');
+    const vals = [];
+    for (let i = 0; i < CAT_ROWS; i++) {
+      const k = d.cats[i];
+      vals.push(k ? [k[0], k[1] === null ? '' : k[1], k[2]] : ['', '', '']);
+    }
+    sh.getRange(CAT_START, c, CAT_ROWS, 3).setValues(vals).setBackground('#ffffff')
+      .setBorder(true, true, true, true, true, true, COLORS.line, B.SOLID);
+    sh.getRange(CAT_START, c + 1, CAT_ROWS, 1).setBackground(COLORS.input)
+      .setNumberFormat('+0;-0;0').setHorizontalAlignment('center').setFontWeight('bold');
+    sh.getRange(CAT_START, c + 2, CAT_ROWS, 1).setFontColor(COLORS.muted);
+  });
+  sh.setRowHeight(8, 28);
+  sh.getRange(CAT_START + CAT_ROWS + 1, 1, 1, 7).merge().setFontStyle('italic').setFontSize(9).setFontColor(COLORS.muted)
+    .setValue('El panel admite ' + CAT_ROWS + ' categorías por persona; la hoja dashboard muestra las primeras ' + SLOTS +
+      '. Si cambias el nombre de una categoría, los registros antiguos conservan el nombre anterior.');
+
+  const rng = [sh.getRange(CAT_START, 2, CAT_ROWS, 1), sh.getRange(CAT_START, 6, CAT_ROWS, 1)];
+  const rules = sh.getConditionalFormatRules();
+  rules.push(
+    SpreadsheetApp.newConditionalFormatRule().whenNumberGreaterThan(0).setFontColor(COLORS.greenText).setRanges(rng).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenNumberLessThan(0).setFontColor(COLORS.redText).setRanges(rng).build()
+  );
+  sh.setConditionalFormatRules(rules);
+}
+
+/* =====================  HOJA OCULTA DE DATOS PARA GRÁFICOS  ===================== */
+
+function ensureData_() {
+  const ss = ss_();
+  let ds = ss.getSheetByName(DATA_SHEET);
+  if (!ds) {
+    ds = ss.insertSheet(DATA_SHEET);
+    if (ds.getMaxColumns() > 10) ds.deleteColumns(11, ds.getMaxColumns() - 10);
+  }
+  return ds;
+}
+
+// Bloque por persona: A:D (p1) y F:I (p2) -> Día | Acumulado | Puntos del día | Racha
+function writeDataBlock_(def, sheetName) {
+  const ds = ensureData_();
+  const c0 = def.index * 5 + 1;
+  const q = qs_(sheetName);
+  const ls = LOG_START, le = LOG_START + LOG_ROWS - 1;
+  const DR = q + '$B$' + ls + ':$B$' + le, PR = q + '$E$' + ls + ':$E$' + le;
+  ds.getRange(1, c0, 1, 4).setValues([['Día', 'Acumulado', 'Puntos del día', 'Racha']]);
+  const f = [];
+  for (let i = 0; i < 30; i++) {
+    const r = i + 2, A = colL_(c0), Cc = colL_(c0 + 2), D = colL_(c0 + 3);
+    f.push([
+      i === 0 ? '=TODAY()-29' : '=' + A + (r - 1) + '+1',
+      '=SUMIFS(' + PR + ',' + DR + ',"<"&(' + A + r + '+1))',
+      '=SUMIFS(' + PR + ',' + DR + ',">="&' + A + r + ',' + DR + ',"<"&(' + A + r + '+1))',
+      i === 0 ? '=IF(' + Cc + r + '>0,1,0)' : '=IF(' + Cc + r + '>0,' + D + (r - 1) + '+1,0)'
+    ]);
+  }
+  ds.getRange(2, c0, 30, 4).setFormulas(f);
+  ds.getRange(2, c0, 30, 1).setNumberFormat('dd/mm');
+  return ds;
+}
+
+/* =====================  HOJA DASHBOARD POR PERSONA  ===================== */
+
+function card_(sh, row, c1, c2, label) {
+  const B = SpreadsheetApp.BorderStyle, w = c2 - c1 + 1;
+  if (w > 1) for (let i = 0; i < 3; i++) sh.getRange(row + i, c1, 1, w).merge();
+  sh.getRange(row, c1, 3, w).setBackground('#ffffff').setHorizontalAlignment('center').setVerticalAlignment('middle')
+    .setBorder(true, true, true, true, false, false, COLORS.line, B.SOLID);
+  sh.getRange(row, c1, 1, w).setBorder(true, null, null, null, null, null, COLORS.dark, B.SOLID_THICK);
+  sh.getRange(row, c1).setValue(label).setFontSize(8).setFontWeight('bold').setFontColor(COLORS.muted);
+  sh.setRowHeight(row, 24); sh.setRowHeight(row + 1, 44); sh.setRowHeight(row + 2, 22);
+  return {
+    value: sh.getRange(row + 1, c1).setFontSize(22).setFontWeight('bold').setFontColor(COLORS.dark),
+    sub: sh.getRange(row + 2, c1).setFontSize(9).setFontColor(COLORS.muted)
+  };
+}
+
+function section_(sh, row, c1, c2, text) {
+  sh.getRange(row, c1, 1, c2 - c1 + 1)
+    .setBorder(null, null, true, null, null, null, COLORS.gold, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+  sh.getRange(row, c1).setValue(text).setFontWeight('bold').setFontSize(10).setFontColor(COLORS.dark);
+  sh.setRowHeight(row, 28);
+}
+
+function header_(sh, row, c1, c2) {
+  sh.getRange(row, c1, 1, c2 - c1 + 1).setBackground(COLORS.dark).setFontColor('#ffffff').setFontWeight('bold');
+  sh.setRowHeight(row, 28);
+}
+
+function createPersonSheet_(def, records) {
+  const ss = ss_(), B = SpreadsheetApp.BorderStyle;
+  const cs = ss.getSheetByName(CONFIG_SHEET);
+  const cfg = readConfig_(def);
+  const CSQ = qs_(CONFIG_SHEET);
+  const prow = 4 + def.index;
+  const ls = LOG_START, le = LOG_START + LOG_ROWS - 1;
+  const R = c => '$' + c + '$' + ls + ':$' + c + '$' + le;
+  const DR = R('B'), CR = R('D'), PR = R('E');
+  const refEnd = REF_START + SLOTS - 1, totalRow = refEnd + 1;
+  const chartTitle = totalRow + 2, chartRow = chartTitle + 1;
+  const logTitle = LOG_START - 2, logHeader = LOG_START - 1;
+
+  let name = cfg.name;
+  while (ss.getSheetByName(name)) name += ' (2)';
+  const sh = ss.insertSheet(name);
+  sh.setHiddenGridlines(true);
+  sh.setTabColor(COLORS.gold);
+  if (sh.getMaxColumns() > 11) sh.deleteColumns(12, sh.getMaxColumns() - 11);
+  if (sh.getMaxRows() < le + 2) sh.insertRowsAfter(sh.getMaxRows(), le + 2 - sh.getMaxRows());
+  [16, 105, 250, 250, 95, 135, 28, 260, 80, 90, 16].forEach((w, i) => sh.setColumnWidth(i + 1, w));
+  sh.getRange(1, 1, le + 2, 11).setFontFamily('Arial').setFontSize(10).setVerticalAlignment('middle').setBackground(COLORS.page);
+  sh.getRange('A3').setValue('tracker:' + def.key + ':v' + SHEET_VER).setFontColor(COLORS.page).setFontSize(6);
+  sh.setRowHeight(3, 14);
+
+  // Encabezado
+  sh.getRange(1, 1, 1, 11).setBackground(COLORS.darker);
+  sh.getRange('B1:J1').merge()
+    .setFormula('="Camino a los "&TEXT(' + CSQ + '$B$' + prow + ',"#,##0")&" puntos  ·  "&' + CSQ + '$A$' + prow)
+    .setFontColor('#ffffff').setFontSize(24).setFontWeight('bold');
+  sh.setRowHeight(1, 62);
+  sh.getRange(2, 1, 1, 11).setBackground(COLORS.gold);
+  sh.getRange('B2:F2').merge().setFormula('="🏆  Recompensa al llegar a la meta: "&' + CSQ + '$C$' + prow)
+    .setFontColor('#ffffff').setFontWeight('bold');
+  sh.getRange('H2:J2').merge().setFormula('="Hoy: "&TEXT(TODAY(),"yyyy-mm-dd")')
+    .setFontColor('#ffffff').setHorizontalAlignment('right');
+  sh.setRowHeight(2, 30);
+
+  // Tarjetas principales
+  const cT = card_(sh, 4, 2, 3, 'TOTAL ACUMULADO');
+  cT.value.setFormula('=SUM(' + PR + ')').setNumberFormat('#,##0');
+  cT.sub.setFormula('=COUNT(' + PR + ')&" registros"');
+  const cM = card_(sh, 4, 4, 4, 'META');
+  cM.value.setFormula('=' + CSQ + '$B$' + prow).setNumberFormat('#,##0').setFontColor(COLORS.gold);
+  cM.sub.setValue('se edita en Configuración');
+  const cR = card_(sh, 4, 5, 6, 'PUNTOS RESTANTES');
+  cR.value.setFormula('=MAX($D$5-$B$5,0)').setNumberFormat('#,##0').setFontColor(COLORS.redText);
+  cR.sub.setFormula('=IF($B$5>=$D$5,"¡objetivo cumplido!","para llegar a la meta")');
+  const cP = card_(sh, 4, 8, 10, 'PROGRESO');
+  cP.value.setFormula('=IFERROR(MAX(MIN($B$5/$D$5,1),0),0)').setNumberFormat('0%');
+  cP.sub.setFormula('=IF($H$5>=1,"🏆 Meta alcanzada",IF($H$5>=0.75,"🏁 Recta final",IF($H$5>=0.5,"⚡ A mitad de camino",' +
+    'IF($H$5>=0.25,"🔥 En marcha","🌱 Comenzando"))))').setFontSize(11).setFontWeight('bold').setFontColor(COLORS.gold);
+
+  sh.setRowHeight(7, 10);
+  sh.getRange('B8:F8').merge().setBackground('#ffffff')
+    .setBorder(true, true, true, true, false, false, COLORS.line, B.SOLID)
+    .setFormula('=SPARKLINE(MAX($B$5,0),{"charttype","bar";"max",MAX($D$5,1);"color1","' + COLORS.dark + '";"color2","#ece7d6"})');
+  sh.getRange('H8:J8').merge().setBackground('#ffffff').setHorizontalAlignment('center').setFontStyle('italic')
+    .setBorder(true, true, true, true, false, false, COLORS.line, B.SOLID)
+    .setFormula('=IF($B$5>=$D$5,"🏆 ¡Meta alcanzada! Reclama la recompensa","Faltan "&TEXT($E$5,"#,##0")&" puntos para la recompensa")');
+  sh.setRowHeight(8, 28); sh.setRowHeight(9, 12);
+
+  // Tarjetas secundarias
+  const ds = writeDataBlock_(def, name);
+  const c0 = def.index * 5 + 1, DQ = qs_(DATA_SHEET);
+  const sG = card_(sh, 10, 2, 3, 'PUNTOS GANADOS');
+  sG.value.setFormula('=SUMIF(' + PR + ',">0")').setNumberFormat('+#,##0;-#,##0;0').setFontSize(18).setFontColor(COLORS.greenText);
+  sG.sub.setValue('suman al total');
+  const sL = card_(sh, 10, 4, 4, 'PUNTOS PERDIDOS');
+  sL.value.setFormula('=SUMIF(' + PR + ',"<0")').setNumberFormat('+#,##0;-#,##0;0').setFontSize(18).setFontColor(COLORS.redText);
+  sL.sub.setValue('restan del total');
+  const sH = card_(sh, 10, 5, 6, 'HOY');
+  sH.value.setFormula('=SUMIFS(' + PR + ',' + DR + ',">="&TODAY(),' + DR + ',"<"&(TODAY()+1))')
+    .setNumberFormat('+#,##0;-#,##0;0').setFontSize(18);
+  sH.sub.setFormula('=COUNTIFS(' + DR + ',">="&TODAY(),' + DR + ',"<"&(TODAY()+1))&" registros hoy"');
+  const sS = card_(sh, 10, 8, 10, 'RACHA');
+  const pc = DQ + colL_(c0 + 2), rc = DQ + colL_(c0 + 3);
+  sS.value.setFormula('=LET(s,IF(' + pc + '31>0,' + rc + '31,' + rc + '30),s&IF(s=1," día"," días"))').setFontSize(18);
+  sS.sub.setValue('días seguidos sumando (máx. 30)');
+  sh.setRowHeight(13, 14);
+
+  // Resumen por categoría
+  const sumEnd = refEnd;
+  section_(sh, 14, 2, 6, 'RESUMEN POR CATEGORÍA');
+  sh.getRange('B15:C15').merge().setValue('Categoría');
+  sh.getRange('D15').setValue('Distribución');
+  sh.getRange('E15').setValue('Registros');
+  sh.getRange('F15').setValue('Puntos');
+  header_(sh, 15, 2, 6);
+  sh.getRange('E15:F15').setHorizontalAlignment('right');
+  const nc = colL_(def.col), pcCol = colL_(def.col + 1);
+  for (let i = 0; i < SLOTS; i++) {
+    const r = REF_START + i, cr = CAT_START + i;
+    sh.getRange(r, 2, 1, 2).merge();
+    sh.getRange(r, 2).setFormula('=IF(H' + r + '="","",H' + r + ')');
+    sh.getRange(r, 4).setFormula('=IF(B' + r + '="","",SPARKLINE(ABS(F' + r + '),{"charttype","bar";"max",MAX(1,MAX($F$' + REF_START + ':$F$' + sumEnd +
+      '),-MIN($F$' + REF_START + ':$F$' + sumEnd + '));"color1",IF(F' + r + '<0,"' + COLORS.redText + '","' + COLORS.dark + '");"color2","#ece7d6"}))');
+    sh.getRange(r, 5).setFormula('=IF(B' + r + '="","",COUNTIF(' + CR + ',B' + r + '))');
+    sh.getRange(r, 6).setFormula('=IF(B' + r + '="","",SUMIF(' + CR + ',B' + r + ',' + PR + '))');
+    sh.getRange(r, 8).setFormula('=IF(' + CSQ + nc + cr + '="","",' + CSQ + nc + cr + ')');
+    sh.getRange(r, 9).setFormula('=IF(H' + r + '="","",IF(' + CSQ + pcCol + cr + '="","a criterio",' + CSQ + pcCol + cr + '))');
+    sh.setRowHeight(r, 25);
+  }
+  sh.getRange(REF_START, 2, SLOTS, 5).setBackground('#ffffff').setBorder(true, true, true, true, false, true, COLORS.line, B.SOLID);
+  sh.getRange(REF_START, 5, SLOTS, 1).setHorizontalAlignment('right');
+  sh.getRange(REF_START, 6, SLOTS, 1).setNumberFormat('+#,##0;-#,##0;0').setHorizontalAlignment('right').setFontWeight('bold');
+  sh.getRange(totalRow, 2, 1, 2).merge().setValue('TOTAL');
+  sh.getRange(totalRow, 5).setFormula('=SUM(E' + REF_START + ':E' + sumEnd + ')');
+  sh.getRange(totalRow, 6).setFormula('=SUM(F' + REF_START + ':F' + sumEnd + ')').setNumberFormat('+#,##0;-#,##0;0');
+  sh.getRange(totalRow, 2, 1, 5).setBackground(COLORS.cream).setFontWeight('bold')
+    .setBorder(true, true, true, true, false, false, COLORS.line, B.SOLID);
+  sh.getRange(totalRow, 5, 1, 2).setHorizontalAlignment('right');
+  sh.setRowHeight(totalRow, 26);
+
+  // Acciones rápidas
+  section_(sh, 14, 8, 10, 'ACCIONES RÁPIDAS · marca para registrar hoy');
+  sh.getRange('H15').setValue('Categoría'); sh.getRange('I15').setValue('Puntos'); sh.getRange('J15').setValue('Hoy');
+  header_(sh, 15, 8, 10);
+  sh.getRange('I15:J15').setHorizontalAlignment('center');
+  sh.getRange(REF_START, 8, SLOTS, 3).setBackground('#ffffff').setBorder(true, true, true, true, true, true, COLORS.line, B.SOLID);
+  sh.getRange(REF_START, 9, SLOTS, 1).setHorizontalAlignment('center').setNumberFormat('+0;-0;0').setFontWeight('bold');
+  sh.getRange(REF_START, 10, SLOTS, 1).setHorizontalAlignment('center');
+  for (let i = 0; i < SLOTS; i++) {
+    const k = cfg.categories[i];
+    if (k && k.points !== null) sh.getRange(REF_START + i, 10).insertCheckboxes();
+  }
+  sh.getRange(totalRow, 8, 1, 3).merge().setValue('Los puntos se editan en la hoja Configuración.')
+    .setFontStyle('italic').setFontSize(8).setFontColor(COLORS.muted);
+
+  // Gráficos
+  section_(sh, chartTitle, 2, 10, 'EVOLUCIÓN · últimos 30 días');
+  sh.setRowHeight(chartTitle - 1, 14);
+  const chartLine = sh.newChart().setChartType(Charts.ChartType.LINE)
+    .addRange(ds.getRange(1, c0, 31, 1)).addRange(ds.getRange(1, c0 + 1, 31, 1)).setNumHeaders(1)
+    .setPosition(chartRow, 2, 0, 6)
+    .setOption('title', 'Total acumulado').setOption('legend', { position: 'none' })
+    .setOption('colors', [COLORS.dark]).setOption('pointSize', 4)
+    .setOption('width', 830).setOption('height', 320).setOption('backgroundColor', '#ffffff').build();
+  const chartCols = sh.newChart().setChartType(Charts.ChartType.COLUMN)
+    .addRange(ds.getRange(1, c0, 31, 1)).addRange(ds.getRange(1, c0 + 2, 31, 1)).setNumHeaders(1)
+    .setPosition(chartRow, 8, 0, 6)
+    .setOption('title', 'Puntos por día').setOption('legend', { position: 'none' })
+    .setOption('colors', [COLORS.gold])
+    .setOption('width', 425).setOption('height', 320).setOption('backgroundColor', '#ffffff').build();
+  sh.insertChart(chartLine);
+  sh.insertChart(chartCols);
+
+  // Registro
+  section_(sh, logTitle, 2, 6, 'REGISTRO DE PUNTOS');
+  sh.getRange(logTitle, 8, 1, 3).merge().setValue('Elige la categoría y la fecha y los puntos se completan solos.')
+    .setFontStyle('italic').setFontSize(8).setFontColor(COLORS.muted);
+  sh.getRange(logHeader, 2, 1, 5).setValues([['Fecha', 'Motivo', 'Categoría', 'Puntos', 'Total acumulado']]);
+  header_(sh, logHeader, 2, 6);
+  sh.getRange(logHeader, 5, 1, 2).setHorizontalAlignment('right');
+  sh.getRange(ls, 2, LOG_ROWS, 5).setBackground('#ffffff')
+    .setBorder(false, false, true, false, false, true, COLORS.line, B.SOLID);
+  sh.setRowHeights(ls, LOG_ROWS, 24);
+  sh.getRange(ls, 2, LOG_ROWS, 1).setNumberFormat('yyyy-mm-dd').setHorizontalAlignment('left');
+  sh.getRange(ls, 5, LOG_ROWS, 2).setNumberFormat('+#,##0;-#,##0;0').setHorizontalAlignment('right');
+  sh.getRange(ls, 6, LOG_ROWS, 1).setNumberFormat('#,##0').setFontWeight('bold');
+  const f = [];
+  for (let r = ls; r <= le; r++) f.push(['=IF(E' + r + '="","",SUM(E$' + ls + ':E' + r + '))']);
+  sh.getRange(ls, 6, LOG_ROWS, 1).setFormulas(f);
+
+  sh.getRange(ls, 4, LOG_ROWS, 1).setDataValidation(SpreadsheetApp.newDataValidation()
+    .requireValueInRange(cs.getRange(CAT_START, def.col, CAT_ROWS, 1), true).setAllowInvalid(false).build());
+  sh.getRange(ls, 2, LOG_ROWS, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireDate().setAllowInvalid(false).build());
+  sh.getRange(ls, 5, LOG_ROWS, 1).setDataValidation(SpreadsheetApp.newDataValidation()
+    .requireNumberBetween(-100000, 100000).setAllowInvalid(false).build());
+
+  // Colores condicionales
+  const pm = sh.getRange(ls, 4, LOG_ROWS, 2);
+  const rules = sh.getConditionalFormatRules();
+  rules.push(
+    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND(ISNUMBER($E' + ls + '),$E' + ls + '>0)')
+      .setBackground(COLORS.green).setFontColor(COLORS.greenText).setRanges([pm]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND(ISNUMBER($E' + ls + '),$E' + ls + '<0)')
+      .setBackground(COLORS.red).setFontColor(COLORS.redText).setRanges([pm]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND(ISEVEN(ROW()),$E' + ls + '<>"")')
+      .setBackground(COLORS.zebra).setRanges([sh.getRange(ls, 2, LOG_ROWS, 5)]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=$B$5>=$D$5')
+      .setBackground('#fff3cd').setRanges([sh.getRange('B4:C6'), sh.getRange('H4:J6')]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenNumberGreaterThan(0).setFontColor(COLORS.greenText)
+      .setRanges([sh.getRange(REF_START, 6, SLOTS, 1), sh.getRange(REF_START, 9, SLOTS, 1)]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenNumberLessThan(0).setFontColor(COLORS.redText)
+      .setRanges([sh.getRange(REF_START, 6, SLOTS, 1), sh.getRange(REF_START, 9, SLOTS, 1)]).build()
+  );
+  sh.setConditionalFormatRules(rules);
+
+  try {
+    [sh.getRange(ls, 6, LOG_ROWS, 1), sh.getRange(REF_START, 2, SLOTS + 1, 5)]
+      .forEach(r => r.protect().setDescription('Fórmulas automáticas').setWarningOnly(true));
+  } catch (e) { /* ignorar */ }
+
+  // Registros conservados de una versión anterior
+  if (records && records.length) sh.getRange(ls, 2, records.length, 4).setValues(records);
+  sh.setActiveSelection('B1');
+  return sh;
+}
+
+/* =====================  LÓGICA DE REGISTRO  ===================== */
+
+function isDuplicate_(sh, cfg, dateStr, category, skipRow) {
+  const cat = cfg.categories.find(c => c.name === category);
+  if (!cat || !cat.group) return false;
+  const names = cfg.categories.filter(c => c.group === cat.group).map(c => c.name);
+  const vals = sh.getRange(LOG_START, 2, LOG_ROWS, 4).getValues();
+  return vals.some((v, i) => LOG_START + i !== skipRow && v[3] !== '' && v[0] instanceof Date &&
+    fmt_(v[0]) === dateStr && names.indexOf(v[2]) > -1);
+}
+
+function appendEntry_(sh, cfg, date, reason, category, points) {
+  if (isDuplicate_(sh, cfg, fmt_(date), category, -1)) {
+    throw new Error('Ya hay un registro de "' + category + '" (o equivalente) para el ' + fmt_(date) + '.');
+  }
+  const col = sh.getRange(LOG_START, 5, LOG_ROWS, 1).getValues();
+  const idx = col.findIndex(r => r[0] === '');
+  if (idx < 0) throw new Error('El registro está lleno. Aumenta LOG_ROWS en el script.');
+  sh.getRange(LOG_START + idx, 2, 1, 4).setValues([[date, reason || '', category, points]]);
+}
+
+// Automatizaciones al editar la hoja (no requiere instalar nada).
+function onEdit(e) {
+  if (!e || !e.range) return;
+  try {
+    const sh = e.range.getSheet();
+    const def = defByKey_(getKey_(sh));
+    if (!def || sheetVer_(sh) < SHEET_VER) return;
+    if (e.range.getNumRows() !== 1 || e.range.getNumColumns() !== 1) return;
+    const r = e.range.getRow(), c = e.range.getColumn();
+
+    // Casillas de acciones rápidas
+    if (c === 10 && r >= REF_START && r < REF_START + SLOTS) {
+      if (e.range.getValue() !== true) return;
+      e.range.setValue(false);
+      const name = sh.getRange(r, 8).getValue(), pts = sh.getRange(r, 9).getValue();
+      if (name === '' || typeof pts !== 'number') { toast_('Esa categoría es manual: usa el panel o el registro.'); return; }
+      const cfg = readConfig_(def);
+      withLock_(() => appendEntry_(sh, cfg, today_(), 'Registro rápido', name, pts));
+      toast_('✔ ' + name + ' (' + (pts > 0 ? '+' : '') + pts + ')');
+      return;
+    }
+
+    // Categoría elegida en el registro: completa fecha y puntos
+    if (c === 4 && r >= LOG_START && r < LOG_START + LOG_ROWS && e.value) {
+      const cfg = readConfig_(def);
+      const dateCell = sh.getRange(r, 2);
+      if (dateCell.isBlank()) dateCell.setValue(today_());
+      const pcell = sh.getRange(r, 5);
+      if (pcell.isBlank()) {
+        const cat = cfg.categories.find(k => k.name === e.value);
+        if (cat && cat.points !== null) pcell.setValue(cat.points);
+      }
+      const d = dateCell.getValue();
+      if (d instanceof Date && isDuplicate_(sh, cfg, fmt_(d), e.value, r)) toast_('⚠️ Ya hay un registro igual para ese día.');
+    }
+  } catch (err) { toast_('⚠️ ' + err.message); }
+}
+
+/* =====================  API DEL PANEL  ===================== */
+
+// Opcional: si algún día quieres publicarlo como aplicación web.
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index').setTitle('Registro de puntos')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function sheetFor_(def) {
+  const sh = def ? findSheet_(def) : null;
+  if (!sh || sheetVer_(sh) < SHEET_VER) throw new Error('Ejecuta Puntos > Configuración inicial / actualizar hojas.');
+  return sh;
+}
+
+function personPayload_(def) {
+  const sh = findSheet_(def);
+  if (!sh || sheetVer_(sh) < SHEET_VER) return null;
+  const cfg = readConfig_(def);
+  const vals = sh.getRange(LOG_START, 2, LOG_ROWS, 4).getValues();
+  cfg.records = [];
+  vals.forEach((v, i) => {
+    if (v[3] === '') return;
+    cfg.records.push({ id: i, date: v[0] instanceof Date ? fmt_(v[0]) : String(v[0]), reason: v[1], category: v[2], points: Number(v[3]) });
+  });
+  return cfg;
+}
+
+function getAll() {
+  return { today: fmt_(new Date()), persons: DEFAULTS.map(personPayload_).filter(Boolean) };
+}
+
+function addRecord(key, d) {
+  return withLock_(() => {
+    const def = defByKey_(key);
+    const sh = sheetFor_(def);
+    const cfg = readConfig_(def);
+    const cat = cfg.categories.find(c => c.name === d.category);
+    if (!cat) throw new Error('Categoría no válida.');
+    const pts = (d.points === '' || d.points === null || d.points === undefined) ? cat.points : Number(d.points);
+    if (pts === null || isNaN(pts)) throw new Error('Indica los puntos.');
+    appendEntry_(sh, cfg, parseDate_(d.date), d.reason ? String(d.reason).trim() : '', cat.name, pts);
+    SpreadsheetApp.flush();
+    return personPayload_(def);
+  });
+}
+
+// Borra un registro y compacta la lista para no dejar huecos.
+function deleteRecord(key, id) {
+  return withLock_(() => {
+    const def = defByKey_(key);
+    const sh = sheetFor_(def);
+    const rng = sh.getRange(LOG_START, 2, LOG_ROWS, 4);
+    const vals = rng.getValues();
+    if (id < 0 || id >= vals.length || vals[id][3] === '') throw new Error('Ese registro ya no existe.');
+    const kept = vals.filter((v, i) => v[3] !== '' && i !== id);
+    while (kept.length < LOG_ROWS) kept.push(['', '', '', '']);
+    rng.setValues(kept);
+    SpreadsheetApp.flush();
+    return personPayload_(def);
+  });
+}
