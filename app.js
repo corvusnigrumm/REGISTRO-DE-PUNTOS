@@ -544,7 +544,7 @@ function updateRealtimeButtonState() {
 /* ==========================================================================
    RENDERIZADO DE LA INTERFAZ
    ========================================================================== */
-let prevPct = -1;
+const prevPcts = {}; // keyed by person.key
 
 function render() {
   const person = currentPerson();
@@ -610,16 +610,18 @@ function render() {
   $("#level-emoji").textContent = stats.level.emoji;
   $("#level-name").textContent = stats.level.name;
 
-  // Estado dorado + confeti al alcanzar meta
+  // Estado dorado + celebración épica al alcanzar meta
+  const personKey = person.key;
+  const wasBelowGoal = prevPcts[personKey] !== undefined && prevPcts[personKey] < 100;
   if (stats.total >= stats.goal) {
     progressCard.classList.add("gold");
     addSparkles(progressCard);
-    if (prevPct !== -1 && prevPct < 100) triggerConfetti();
+    if (wasBelowGoal) triggerEpicCelebration(person, stats);
   } else {
     progressCard.classList.remove("gold");
     removeSparkles(progressCard);
   }
-  prevPct = stats.pct;
+  prevPcts[personKey] = stats.pct;
 
   renderStats(stats);
   renderCategories(person);
@@ -908,86 +910,242 @@ function renderCharts(stats) {
 }
 
 /* ==========================================================================
-   CONFETI
+   CELEBRACIÓN ÉPICA - Sistema completo multicapa
    ========================================================================== */
-function triggerConfetti() {
+
+/** Reproduce sonido de fanfarria usando Web Audio API */
+function playCelebrationSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523, 659, 784, 1047, 784, 1047, 1319]; // Do, Mi, Sol, Do5...
+    const times = [0, 0.12, 0.24, 0.36, 0.55, 0.65, 0.78];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + times[i];
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.22, t + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      osc.start(t);
+      osc.stop(t + 0.4);
+    });
+  } catch (e) { /* silencioso si Web Audio no está disponible */ }
+}
+
+/** Crea la lluvia de partículas doradas */
+function startGoldenRain() {
+  const container = $("#golden-rain");
+  if (!container) return;
+  container.innerHTML = "";
+  container.style.display = "block";
+  const colors = ["#ffd700", "#c9a24f", "#e0c07a", "#f0d090", "#fff8d0", "#ffa500", "#ffec6e"];
+  const count = 90;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("div");
+    const isStar = Math.random() > 0.5;
+    p.className = "particle" + (isStar ? " star" : "");
+    const size = (Math.random() * 12 + 5) + "px";
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const duration = (Math.random() * 2.5 + 2).toFixed(2) + "s";
+    const delay = (Math.random() * 3).toFixed(2) + "s";
+    const left = (Math.random() * 100).toFixed(1) + "%";
+    p.style.cssText = `--size:${size};--color:${color};--duration:${duration};--delay:${delay};left:${left};`;
+    container.appendChild(p);
+  }
+  // Limpiar después de la animación
+  setTimeout(() => {
+    container.style.display = "none";
+    container.innerHTML = "";
+  }, 6000);
+}
+
+/** Fuegos artificiales en el canvas */
+function launchFireworks() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const canvas = $("#confetti");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+
   const particles = [];
-  const colors = ["#c9a24f", "#e0c07a", "#1f5d3d", "#2d7a52", "#5bbd8e", "#fff5d1", "#f0d090"];
+  const colors = ["#ffd700", "#c9a24f", "#e0c07a", "#1f5d3d", "#2d7a52", "#5bbd8e", "#fff5d1", "#ff6b6b", "#4ecdc4", "#a29bfe"];
   const shapes = ["rect", "circle", "star"];
 
-  for (let i = 0; i < 180; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const speed = Math.random() * 14 + 6;
-    particles.push({
-      x: canvas.width / 2,
-      y: canvas.height * 0.35,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 6,
-      g: 0.32,
-      size: Math.random() * 8 + 4,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      shape: shapes[Math.floor(Math.random() * shapes.length)],
-      rot: Math.random() * Math.PI * 2,
-      vr: (Math.random() - 0.5) * 0.35,
-      drag: 0.985
-    });
+  function burst(originX, originY, count = 120) {
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
+      const speed = Math.random() * 13 + 5;
+      particles.push({
+        x: originX, y: originY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - (Math.random() * 4),
+        g: 0.28, drag: 0.982,
+        size: Math.random() * 9 + 3,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        shape: shapes[Math.floor(Math.random() * shapes.length)],
+        rot: Math.random() * Math.PI * 2,
+        vr: (Math.random() - 0.5) * 0.4,
+        life: 1.0, decay: Math.random() * 0.012 + 0.008
+      });
+    }
   }
 
-  const start = performance.now();
+  // Primera ráfaga: centro
+  burst(canvas.width / 2, canvas.height * 0.3, 140);
+  // Ráfagas adicionales en posiciones variadas
+  setTimeout(() => burst(canvas.width * 0.25, canvas.height * 0.25, 90), 500);
+  setTimeout(() => burst(canvas.width * 0.75, canvas.height * 0.2, 90), 700);
+  setTimeout(() => burst(canvas.width / 2, canvas.height * 0.5, 100), 1100);
+  setTimeout(() => burst(canvas.width * 0.15, canvas.height * 0.45, 70), 1600);
+  setTimeout(() => burst(canvas.width * 0.85, canvas.height * 0.45, 70), 1800);
+  setTimeout(() => burst(canvas.width * 0.5, canvas.height * 0.15, 80), 2200);
+
   function drawStar(x, y, r, rot) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rot);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
     ctx.beginPath();
     for (let i = 0; i < 5; i++) {
       const a = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-      const px = Math.cos(a) * r;
-      const py = Math.sin(a) * r;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
+      i === 0 ? ctx.moveTo(Math.cos(a)*r, Math.sin(a)*r) : ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
     }
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
+    ctx.closePath(); ctx.fill(); ctx.restore();
   }
 
+  const startT = performance.now();
   function frame(now) {
-    const elapsed = now - start;
+    const elapsed = now - startT;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     let alive = 0;
-    particles.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += p.g;
-      p.vx *= p.drag;
-      p.vy *= p.drag;
-      p.rot += p.vr;
-      if (p.y < canvas.height + 40) alive++;
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy;
+      p.vy += p.g; p.vx *= p.drag; p.vy *= p.drag;
+      p.rot += p.vr; p.life -= p.decay;
+      if (p.life <= 0 || p.y > canvas.height + 40) { particles.splice(i, 1); continue; }
+      alive++;
+      ctx.globalAlpha = Math.max(0, p.life);
       ctx.fillStyle = p.color;
       if (p.shape === "circle") {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size/2, 0, Math.PI*2); ctx.fill();
       } else if (p.shape === "star") {
         drawStar(p.x, p.y, p.size, p.rot);
       } else {
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.55);
         ctx.restore();
       }
-    });
-    if (alive > 0 && elapsed < 4000) requestAnimationFrame(frame);
+    }
+    ctx.globalAlpha = 1;
+    if ((alive > 0 || elapsed < 2800) && elapsed < 7000) requestAnimationFrame(frame);
     else ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
   requestAnimationFrame(frame);
+}
+
+/** Construye los rayos de luz giratorios en el modal */
+function buildCelebrationRays() {
+  const raysEl = $("#celeb-rays");
+  if (!raysEl) return;
+  raysEl.innerHTML = "";
+  const count = 16;
+  for (let i = 0; i < count; i++) {
+    const ray = document.createElement("div");
+    ray.className = "ray";
+    ray.style.transform = `translateX(-50%) rotate(${(360 / count) * i}deg)`;
+    raysEl.appendChild(ray);
+  }
+}
+
+/** Construye las estrellitas del fondo del modal */
+function buildCelebrationStars() {
+  const starsEl = $("#celeb-stars");
+  if (!starsEl) return;
+  starsEl.innerHTML = "";
+  const emojis = ["✨", "⭐", "🌟", "💫", "✦", "★"];
+  for (let i = 0; i < 14; i++) {
+    const s = document.createElement("span");
+    s.className = "star";
+    s.textContent = emojis[i % emojis.length];
+    const size = (Math.random() * 14 + 10) + "px";
+    const dur = (Math.random() * 2 + 2).toFixed(1) + "s";
+    const del = (Math.random() * 3).toFixed(1) + "s";
+    s.style.cssText = `--size:${size};--dur:${dur};--del:${del};` +
+      `left:${(Math.random()*90+5).toFixed(1)}%;top:${(Math.random()*80+5).toFixed(1)}%`;
+    starsEl.appendChild(s);
+  }
+}
+
+/** Muestra el flash de pantalla */
+function triggerScreenFlash() {
+  const flash = $("#celebration-flash");
+  if (!flash) return;
+  flash.style.display = "block";
+  flash.style.animation = "none";
+  void flash.offsetWidth; // reflow
+  flash.style.animation = "screen-flash 1.2s ease-out forwards";
+  setTimeout(() => { flash.style.display = "none"; }, 1300);
+}
+
+/** Abre el modal de celebración */
+function showCelebrationModal(person, stats) {
+  const overlay = $("#celebration-overlay");
+  if (!overlay) return;
+  $("#celeb-name").textContent = person.name;
+  $("#celeb-points").textContent = fmt(stats.total) + " puntos";
+  $("#celeb-reward").textContent = person.reward || "¡La recompensa que mereces!";
+  buildCelebrationRays();
+  buildCelebrationStars();
+  overlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+  // Cerrar con el botón
+  const closeBtn = $("#celeb-close");
+  if (closeBtn) {
+    closeBtn.onclick = closeCelebrationModal;
+  }
+  // Cerrar haciendo clic fuera del modal
+  overlay.onclick = (e) => { if (e.target === overlay) closeCelebrationModal(); };
+}
+
+function closeCelebrationModal() {
+  const overlay = $("#celebration-overlay");
+  if (!overlay) return;
+  overlay.classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+/** Función principal: orquesta todas las capas de celebración */
+function triggerEpicCelebration(person, stats) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    showCelebrationModal(person, stats);
+    return;
+  }
+  // Fase 1: Flash inmediato (0ms)
+  triggerScreenFlash();
+  // Fase 1b: Sonido
+  playCelebrationSound();
+  // Fase 2: Lluvia dorada (100ms)
+  setTimeout(() => startGoldenRain(), 100);
+  // Fase 3: Fuegos artificiales (200ms)
+  setTimeout(() => launchFireworks(), 200);
+  // Fase 4: Modal del trofeo (1400ms)
+  setTimeout(() => showCelebrationModal(person, stats), 1400);
+  // Fase 5: Segunda salva de sonido y lluvia (3s)
+  setTimeout(() => { playCelebrationSound(); startGoldenRain(); }, 3000);
+}
+
+/** Alias para compatibilidad con el clic en el trofeo del banner */
+function triggerConfetti() {
+  const person = currentPerson();
+  const stats = person ? computeStats(person) : null;
+  if (person && stats && stats.total >= stats.goal) {
+    triggerEpicCelebration(person, stats);
+  } else {
+    launchFireworks();
+  }
 }
 
 /* ==========================================================================
@@ -1131,6 +1289,20 @@ function startSyncLoop() {
   }, 1000);
 }
 
+/* ==========================================================================
+   KEEP-ALIVE — Mantiene la app activa 24/7
+   Render static sites no se duermen, pero este ping
+   sirve como capa extra de protección para cualquier host.
+   ========================================================================== */
+function startKeepAlive() {
+  const PING_INTERVAL_MS = 14 * 60 * 1000; // cada 14 minutos
+  setInterval(async () => {
+    try {
+      await fetch(window.location.href, { method: "HEAD", cache: "no-store" });
+    } catch (e) { /* silencioso */ }
+  }, PING_INTERVAL_MS);
+}
+
 // Sincronizar inmediatamente cuando la pestaña vuelve a ser visible
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
@@ -1177,6 +1349,7 @@ async function init() {
   setupReveal();
   setupTilt();
   startSyncLoop();
+  startKeepAlive();
 }
 
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {

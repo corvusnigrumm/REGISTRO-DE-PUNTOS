@@ -1276,13 +1276,294 @@ svg { display: block; max-width: 100%; }
 }
 
 /* ==========================================================================
-   14. Confeti
+   14. Confeti y Canvas de Celebración
    ========================================================================== */
 #confetti {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9999;
+}
+
+/* ==========================================================================
+   15. CELEBRACIÓN ÉPICA - Meta Alcanzada
+   ========================================================================== */
+
+/* Card dorada cuando se alcanza la meta */
+.progress-card.gold {
+  background: linear-gradient(135deg, #fffef5 0%, #fff8e1 30%, #fff3cd 60%, #ffe082 100%);
+  border-color: var(--c-gold);
+  box-shadow:
+    0 0 20px rgba(201, 162, 79, 0.25),
+    0 0 60px rgba(201, 162, 79, 0.15),
+    0 8px 32px rgba(201, 162, 79, 0.2);
+  animation: gold-card-pulse 3s ease-in-out infinite;
+}
+.progress-card.gold .ring-fg { stroke: url(#ringGradGold) !important; }
+.progress-card.gold .ring-glow { background: radial-gradient(circle, rgba(201,162,79,0.3) 0%, transparent 70%); }
+
+@keyframes gold-card-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(201,162,79,0.25), 0 0 60px rgba(201,162,79,0.15), 0 8px 32px rgba(201,162,79,0.2); }
+  50%      { box-shadow: 0 0 30px rgba(201,162,79,0.4), 0 0 80px rgba(201,162,79,0.25), 0 8px 40px rgba(201,162,79,0.3); }
+}
+
+/* Sparkles flotando alrededor de la card dorada */
+.sparkle {
+  position: absolute;
+  font-size: 18px;
+  pointer-events: none;
+  animation: sparkle-float 2.5s ease-in-out infinite;
+  z-index: 5;
+  filter: drop-shadow(0 0 6px rgba(201,162,79,0.6));
+}
+@keyframes sparkle-float {
+  0%, 100% { opacity: 0.3; transform: translateY(0) scale(0.8); }
+  50%      { opacity: 1; transform: translateY(-12px) scale(1.2); }
+}
+
+/* Flash de pantalla completa */
+.celebration-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+  animation: screen-flash 1.2s ease-out forwards;
+}
+@keyframes screen-flash {
+  0%   { background: rgba(255,215,0,0.7); }
+  30%  { background: rgba(255,255,255,0.8); }
+  60%  { background: rgba(201,162,79,0.3); }
+  100% { background: transparent; }
+}
+
+/* Overlay de celebración completa */
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: background 0.6s ease, opacity 0.6s ease;
+}
+.celebration-overlay.active {
+  background: rgba(0, 0, 0, 0.75);
+  opacity: 1;
+  pointer-events: auto;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Modal del trofeo */
+.celebration-modal {
+  position: relative;
+  text-align: center;
+  max-width: 520px;
+  width: 90%;
+  padding: 50px 40px 40px;
+  border-radius: 28px;
+  background: linear-gradient(160deg, #1a1a1a 0%, #0d1f15 50%, #0a1810 100%);
+  border: 2px solid rgba(201, 162, 79, 0.5);
+  box-shadow:
+    0 0 60px rgba(201, 162, 79, 0.4),
+    0 0 120px rgba(201, 162, 79, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: scale(0.3) rotateY(90deg);
+  opacity: 0;
+  animation: trophy-entrance 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s forwards;
+  overflow: visible;
+}
+
+@keyframes trophy-entrance {
+  0%   { transform: scale(0.3) rotateY(90deg); opacity: 0; }
+  50%  { transform: scale(1.1) rotateY(-10deg); opacity: 1; }
+  70%  { transform: scale(0.95) rotateY(5deg); }
+  100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+}
+
+/* Trofeo gigante animado */
+.celebration-trophy {
+  font-size: 100px;
+  line-height: 1;
+  margin-bottom: 12px;
+  display: inline-block;
+  animation: trophy-bounce-mega 2s ease-in-out infinite;
+  filter: drop-shadow(0 8px 30px rgba(201, 162, 79, 0.6));
+}
+@keyframes trophy-bounce-mega {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  15%      { transform: translateY(-20px) scale(1.15) rotate(-5deg); }
+  30%      { transform: translateY(0) scale(1) rotate(0deg); }
+  45%      { transform: translateY(-12px) scale(1.08) rotate(5deg); }
+  60%      { transform: translateY(0) scale(1) rotate(0deg); }
+}
+
+/* Rayos de luz detrás del trofeo */
+.celebration-rays {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  width: 350px;
+  height: 350px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: rays-spin 12s linear infinite;
+}
+@keyframes rays-spin { to { transform: translateX(-50%) rotate(360deg); } }
+
+.celebration-rays .ray {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 3px;
+  height: 160px;
+  transform-origin: center top;
+  background: linear-gradient(to bottom, rgba(201, 162, 79, 0.5), transparent);
+  border-radius: 2px;
+}
+
+/* Texto de celebración */
+.celebration-title {
+  font-family: 'Manrope', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ffd700, #f0c060, #ffd700, #e8a820);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gold-shimmer 3s ease infinite;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+@keyframes gold-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+.celebration-subtitle {
+  font-size: 16px;
+  color: #b8c4bc;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.celebration-name {
+  font-family: 'Manrope', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 4px;
+  text-shadow: 0 0 20px rgba(201, 162, 79, 0.5);
+  animation: name-glow 2s ease-in-out infinite alternate;
+}
+@keyframes name-glow {
+  0%   { text-shadow: 0 0 20px rgba(201,162,79,0.3); }
+  100% { text-shadow: 0 0 40px rgba(201,162,79,0.7), 0 0 80px rgba(201,162,79,0.3); }
+}
+
+.celebration-points {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--c-gold-light);
+  margin-bottom: 20px;
+}
+
+.celebration-reward {
+  background: linear-gradient(135deg, rgba(201, 162, 79, 0.2), rgba(201, 162, 79, 0.08));
+  border: 1px solid rgba(201, 162, 79, 0.4);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  animation: reward-glow 2s ease-in-out infinite alternate;
+}
+@keyframes reward-glow {
+  0%   { box-shadow: 0 0 10px rgba(201,162,79,0.1); }
+  100% { box-shadow: 0 0 25px rgba(201,162,79,0.3); }
+}
+.celebration-reward .reward-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #c9a24f;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.celebration-reward .reward-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.celebration-close {
+  background: linear-gradient(135deg, #c9a24f, #e0c07a);
+  border: none;
+  color: #1a1200;
+  font-weight: 800;
+  font-size: 16px;
+  padding: 14px 40px;
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(201, 162, 79, 0.4);
+  letter-spacing: 0.5px;
+}
+.celebration-close:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 30px rgba(201, 162, 79, 0.6);
+}
+
+/* Partículas doradas cayendo */
+.golden-rain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10002;
+  overflow: hidden;
+}
+.golden-rain .particle {
+  position: absolute;
+  top: -20px;
+  width: var(--size, 8px);
+  height: var(--size, 8px);
+  background: var(--color, #c9a24f);
+  border-radius: 50%;
+  animation: rain-fall var(--duration, 3s) linear var(--delay, 0s) forwards;
+  opacity: 0.8;
+  box-shadow: 0 0 6px var(--color, #c9a24f);
+}
+.golden-rain .particle.star {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+@keyframes rain-fall {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+  10%  { opacity: 0.9; }
+  80%  { opacity: 0.6; }
+  100% { transform: translateY(110vh) rotate(720deg) scale(0.3); opacity: 0; }
+}
+
+/* Estrellas de fondo del modal */
+.celebration-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 28px;
+}
+.celebration-stars .star {
+  position: absolute;
+  font-size: var(--size, 14px);
+  animation: celebration-star-float var(--dur, 3s) ease-in-out infinite var(--del, 0s);
+  opacity: 0;
+}
+@keyframes celebration-star-float {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(0.5); }
+  20%      { opacity: 0.8; }
+  50%      { opacity: 1; transform: translateY(-20px) scale(1.2); }
+  80%      { opacity: 0.6; }
 }
 
 /* ==========================================================================
@@ -1562,6 +1843,38 @@ svg { display: block; max-width: 100%; }
 
 <!-- Canvas para confeti -->
 <canvas id="confetti" aria-hidden="true"></canvas>
+
+<!-- ============ CELEBRACIÓN ÉPICA ============ -->
+<!-- Flash de pantalla -->
+<div id="celebration-flash" class="celebration-flash" style="display:none" aria-hidden="true"></div>
+
+<!-- Lluvia dorada -->
+<div id="golden-rain" class="golden-rain" style="display:none" aria-hidden="true"></div>
+
+<!-- Overlay oscuro + modal de trofeo -->
+<div id="celebration-overlay" class="celebration-overlay" role="dialog" aria-modal="true" aria-labelledby="celeb-title">
+  <div class="celebration-modal" id="celebration-modal">
+    <!-- Estrellas flotantes del fondo -->
+    <div class="celebration-stars" id="celeb-stars" aria-hidden="true"></div>
+    <!-- Rayos de luz giratorios -->
+    <div class="celebration-rays" id="celeb-rays" aria-hidden="true"></div>
+    <!-- Contenido -->
+    <div style="position:relative; z-index:2;">
+      <div class="celebration-trophy" aria-hidden="true">🏆</div>
+      <div class="celebration-title" id="celeb-title">¡META ALCANZADA!</div>
+      <div class="celebration-subtitle">Lo lograste. Llegaste hasta arriba.</div>
+      <div class="celebration-name" id="celeb-name">—</div>
+      <div class="celebration-points" id="celeb-points">0 puntos</div>
+      <div class="celebration-reward">
+        <div class="reward-label">🎁 Tu recompensa</div>
+        <div class="reward-value" id="celeb-reward">—</div>
+      </div>
+      <button type="button" class="celebration-close" id="celeb-close">
+        🎉 &nbsp;¡A disfrutarlo!
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- Gradientes SVG compartidos -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
