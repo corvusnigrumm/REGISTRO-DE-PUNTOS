@@ -6,9 +6,22 @@
 <meta name="theme-color" content="#1f5d3d" />
 <meta name="description" content="Sistema de seguimiento de puntos y logros personales con sincronización en tiempo real desde Google Sheets." />
 <title>Camino a los 2000 puntos</title>
+<script>
+  (function() {
+    try {
+      var saved = localStorage.getItem("app_theme");
+      if (saved === "dark" || saved === "light") {
+        document.documentElement.setAttribute("data-theme", saved);
+      } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    } catch(e) {}
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="games.css">
 <style>
 
 /* ==========================================================================
@@ -78,8 +91,34 @@
   --sar: env(safe-area-inset-right, 0px);
 }
 
+:root[data-theme="dark"] {
+  --surface: #171f1b;
+  --surface-2: #1d2621;
+  --surface-elevated: #222c27;
+  --bg: #0d1310;
+  --text: #eef2ef;
+  --text-soft: #b8bfbb;
+  --text-mute: #77807c;
+  --c-forest: #3fa076;
+  --c-forest-dark: #2d7a52;
+  --c-forest-light: #5bbd8e;
+  --c-gold: #e0b868;
+  --c-gold-light: #f0d090;
+  --positive: #52c87f;
+  --positive-bg: rgba(82,200,127,0.14);
+  --negative: #f0775d;
+  --negative-bg: rgba(240,119,93,0.14);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,0.6);
+  --shadow-glow: 0 0 30px rgba(63,160,118,0.3);
+  --shadow-focus: 0 0 0 3px rgba(63,160,118,0.45);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --surface: #171f1b;
     --surface-2: #1d2621;
     --surface-elevated: #222c27;
@@ -167,10 +206,13 @@ svg { display: block; max-width: 100%; }
   animation: orb-float-3 40s ease-in-out infinite;
   opacity: 0.18;
 }
+[data-theme="dark"] .orb { opacity: 0.22; }
+[data-theme="dark"] .orb-2 { opacity: 0.14; }
+[data-theme="dark"] .orb-3 { opacity: 0.1; }
 @media (prefers-color-scheme: dark) {
-  .orb { opacity: 0.22; }
-  .orb-2 { opacity: 0.14; }
-  .orb-3 { opacity: 0.1; }
+  :root:not([data-theme="light"]) .orb { opacity: 0.22; }
+  :root:not([data-theme="light"]) .orb-2 { opacity: 0.14; }
+  :root:not([data-theme="light"]) .orb-3 { opacity: 0.1; }
 }
 @keyframes orb-float-1 {
   0%, 100% { transform: translate(0, 0) scale(1); }
@@ -306,8 +348,9 @@ svg { display: block; max-width: 100%; }
   flex-shrink: 0;
   transition: background var(--t-mid) var(--ease), color var(--t-mid) var(--ease);
 }
+[data-theme="dark"] .avatar { background: var(--surface-elevated); color: var(--c-forest-light); }
 @media (prefers-color-scheme: dark) {
-  .avatar { background: var(--surface-elevated); color: var(--c-forest-light); }
+  :root:not([data-theme="light"]) .avatar { background: var(--surface-elevated); color: var(--c-forest-light); }
 }
 
 /* Banner dorado con shimmer */
@@ -409,8 +452,9 @@ svg { display: block; max-width: 100%; }
   transition: left 700ms var(--ease-out);
   pointer-events: none;
 }
+[data-theme="dark"] .card::before { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); }
 @media (prefers-color-scheme: dark) {
-  .card::before { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); }
+  :root:not([data-theme="light"]) .card::before { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); }
 }
 .card:hover::before { left: 140%; }
 .card:hover { box-shadow: var(--shadow-md); }
@@ -676,8 +720,12 @@ svg { display: block; max-width: 100%; }
   0%, 100% { box-shadow: 0 12px 40px rgba(201,162,79,0.25); }
   50% { box-shadow: 0 12px 60px rgba(201,162,79,0.5); }
 }
+[data-theme="dark"] .progress-card.gold {
+  background: linear-gradient(135deg, #3a2f15 0%, #2a2310 100%);
+  border-color: rgba(224,184,104,0.4);
+}
 @media (prefers-color-scheme: dark) {
-  .progress-card.gold {
+  :root:not([data-theme="light"]) .progress-card.gold {
     background: linear-gradient(135deg, #3a2f15 0%, #2a2310 100%);
     border-color: rgba(224,184,104,0.4);
   }
@@ -871,8 +919,9 @@ svg { display: block; max-width: 100%; }
   animation: ripple-anim 650ms var(--ease-out);
   pointer-events: none;
 }
+[data-theme="dark"] .ripple { background: radial-gradient(circle, rgba(63,160,118,0.4), transparent 70%); }
 @media (prefers-color-scheme: dark) {
-  .ripple { background: radial-gradient(circle, rgba(63,160,118,0.4), transparent 70%); }
+  :root:not([data-theme="light"]) .ripple { background: radial-gradient(circle, rgba(63,160,118,0.4), transparent 70%); }
 }
 @keyframes ripple-anim {
   to { transform: scale(4); opacity: 0; }
@@ -1083,8 +1132,9 @@ svg { display: block; max-width: 100%; }
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
   animation: skeleton-shine 1.4s infinite;
 }
+[data-theme="dark"] .skeleton::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent); }
 @media (prefers-color-scheme: dark) {
-  .skeleton::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent); }
+  :root:not([data-theme="light"]) .skeleton::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent); }
 }
 @keyframes skeleton-shine {
   0% { transform: translateX(-100%); }
@@ -1736,8 +1786,13 @@ svg { display: block; max-width: 100%; }
   border-color: rgba(201,162,79,0.3);
   color: var(--c-forest-dark);
 }
+[data-theme="dark"] .btn-realtime {
+  background: linear-gradient(135deg, rgba(224,184,104,0.15), rgba(63,160,118,0.1));
+  color: var(--c-gold-light);
+  border-color: rgba(224,184,104,0.3);
+}
 @media (prefers-color-scheme: dark) {
-  .btn-realtime {
+  :root:not([data-theme="light"]) .btn-realtime {
     background: linear-gradient(135deg, rgba(224,184,104,0.15), rgba(63,160,118,0.1));
     color: var(--c-gold-light);
     border-color: rgba(224,184,104,0.3);
@@ -1805,6 +1860,55 @@ svg { display: block; max-width: 100%; }
   background: rgba(201,162,79,0.15);
   color: #8c6a1e;
 }
+.btn-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--text-soft);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all var(--t-mid) var(--ease);
+  min-height: 36px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.btn-theme-toggle:hover {
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.btn-theme-toggle:active {
+  transform: scale(0.97);
+}
+.btn-theme-toggle svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  transition: transform var(--t-mid) var(--ease-spring);
+}
+.btn-theme-toggle:hover svg {
+  transform: rotate(20deg);
+}
+
+.btn-theme-toggle .icon-sun { display: none; color: #f0d090; }
+.btn-theme-toggle .icon-moon { display: block; color: var(--c-forest); }
+
+[data-theme="dark"] .btn-theme-toggle .icon-sun { display: block; }
+[data-theme="dark"] .btn-theme-toggle .icon-moon { display: none; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .btn-theme-toggle .icon-sun { display: block; }
+  :root:not([data-theme="light"]) .btn-theme-toggle .icon-moon { display: none; }
+}
+
 @media (max-width: 640px) {
   .header {
     grid-template-columns: 1fr;
@@ -1814,10 +1918,10 @@ svg { display: block; max-width: 100%; }
     width: 100%;
     justify-content: space-between;
   }
-  .btn-sync .btn-text, .btn-realtime .btn-text {
+  .btn-sync .btn-text, .btn-realtime .btn-text, .btn-theme-toggle .btn-text {
     display: none;
   }
-  .btn-sync, .btn-realtime {
+  .btn-sync, .btn-realtime, .btn-theme-toggle {
     padding: 6px 10px;
   }
 }
@@ -1908,6 +2012,23 @@ svg { display: block; max-width: 100%; }
       </div>
     </div>
     <div class="header-controls">
+      <button type="button" class="btn-theme-toggle" id="btn-theme-toggle" title="Cambiar a Modo Oscuro" aria-label="Cambiar modo de tema">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <span class="btn-text" id="theme-btn-text">Tema</span>
+      </button>
       <button type="button" class="btn-sync" id="btn-manual-sync" title="Actualizar datos de Google Sheets ahora" aria-label="Actualizar ahora">
         <svg class="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
@@ -1925,6 +2046,24 @@ svg { display: block; max-width: 100%; }
       </div>
     </div>
   </header>
+
+  <!-- Navegación entre apartados -->
+  <nav class="app-nav" id="app-nav" role="tablist" aria-label="Navegación principal">
+    <button type="button" class="nav-tab active" data-tab="dashboard" role="tab" aria-selected="true" id="tab-btn-dashboard">
+      <span class="nav-tab-icon">📊</span>
+      <span class="nav-tab-text">Puntos y Metas</span>
+    </button>
+    <button type="button" class="nav-tab" data-tab="snake" role="tab" aria-selected="false" id="tab-btn-snake">
+      <span class="nav-tab-icon">🐍</span>
+      <span class="nav-tab-text">Serpiente</span>
+      <span class="nav-tab-badge">Clásico</span>
+    </button>
+    <button type="button" class="nav-tab" data-tab="doom" role="tab" aria-selected="false" id="tab-btn-doom">
+      <span class="nav-tab-icon">🎮</span>
+      <span class="nav-tab-text">DOOM 1993</span>
+      <span class="nav-tab-badge hot">Retro</span>
+    </button>
+  </nav>
 
   <!-- Banner de recompensa con brillo animado -->
   <section class="reward-banner" id="reward-banner" aria-label="Recompensa">
@@ -2050,9 +2189,162 @@ svg { display: block; max-width: 100%; }
 
   </main>
 
+  <!-- ==================== APARTADO: JUEGO DE LA SERPIENTE ==================== -->
+  <section class="game-section hidden" id="section-snake" aria-label="Juego de la Serpiente">
+    <div class="game-card" style="background:#040a05; border-color: #1f5d3d;">
+
+      <!-- Marcador estilo arcade -->
+      <div class="snake-scoreboard">
+        <div class="snake-stat-box highlight">
+          <span class="snake-stat-label">Puntos</span>
+          <span class="snake-stat-value num" id="snake-score">0</span>
+        </div>
+        <div class="snake-stat-box record">
+          <span class="snake-stat-label">Récord</span>
+          <span class="snake-stat-value num" id="snake-highscore">0</span>
+        </div>
+        <div class="snake-stat-box">
+          <span class="snake-stat-label">Nivel</span>
+          <span class="snake-stat-value num" id="snake-level">1</span>
+        </div>
+        <div class="snake-stat-box">
+          <span class="snake-stat-label">Tamaño</span>
+          <span class="snake-stat-value num" id="snake-length">3</span>
+        </div>
+      </div>
+
+      <!-- Toolbar compacto -->
+      <div class="snake-toolbar">
+        <button type="button" class="snake-btn-tool primary" id="snake-btn-restart">Nueva Partida</button>
+        <button type="button" class="snake-btn-tool" id="snake-btn-pause">Pausa</button>
+        <div class="snake-settings-group" style="margin-left:auto;">
+          <select class="snake-select" id="snake-mode-select" title="Dificultad">
+            <option value="progressive">Clásico</option>
+            <option value="easy">Fácil</option>
+            <option value="extreme">Extremo</option>
+          </select>
+          <button type="button" class="snake-btn-tool" id="snake-btn-walls">Bordes: Mortales</button>
+          <button type="button" class="snake-btn-tool active" id="snake-btn-sound">Sonido ON</button>
+        </div>
+      </div>
+
+      <!-- Canvas del juego -->
+      <div class="snake-game-area">
+        <div class="snake-canvas-wrapper" id="snake-canvas-wrapper">
+          <canvas id="snake-canvas"></canvas>
+
+          <!-- Overlay (inicio / pausa / game over) -->
+          <div class="snake-overlay active" id="snake-overlay">
+            <img src="snake_head.png" alt="serpiente" class="snake-overlay-head" id="snake-overlay-head">
+            <h3 class="snake-overlay-title" id="snake-overlay-title">¡A COMER POLLO!</h3>
+            <div class="snake-overlay-record-tag" id="snake-overlay-record" style="display:none">
+              NUEVO RÉCORD
+            </div>
+            <p class="snake-overlay-sub" id="snake-overlay-sub">
+              Atrapa las presas de pollo, crece y no choques.
+            </p>
+            <button type="button" class="snake-btn-play" id="snake-btn-overlay">JUGAR</button>
+          </div>
+        </div>
+
+        <!-- D-Pad táctil -->
+        <div class="snake-touch-controls">
+          <p class="snake-touch-hint">Desliza o usa la cruceta</p>
+          <div class="virtual-dpad" aria-label="Controles táctiles">
+            <button type="button" class="dpad-btn up"    id="dpad-up"     aria-label="Arriba">▲</button>
+            <button type="button" class="dpad-btn left"  id="dpad-left"   aria-label="Izquierda">◀</button>
+            <button type="button" class="dpad-btn center" id="dpad-center" aria-label="Pausa">II</button>
+            <button type="button" class="dpad-btn right" id="dpad-right"  aria-label="Derecha">▶</button>
+            <button type="button" class="dpad-btn down"  id="dpad-down"   aria-label="Abajo">▼</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== APARTADO: CLÁSICO DOOM (1993) ==================== -->
+  <section class="game-section hidden" id="section-doom" aria-label="Doom Clásico 1993">
+    <div class="game-card">
+      <!-- Encabezado de DOOM -->
+      <div class="doom-header">
+        <div class="doom-title-group">
+          <h2><span>🔥</span> DOOM (1993) Shareware</h2>
+          <p>El shooter más legendario de la historia, ejecutado en WebAssembly a 60 FPS con controles táctiles.</p>
+        </div>
+        <div class="doom-toolbar">
+          <select class="snake-select" id="doom-mirror-select" title="Servidor de Juego">
+            <option value="cloudflare">🚀 Cloudflare WASM (Recomendado Celular con Joysticks)</option>
+            <option value="archive">🏛️ Archive.org DosBox (Original Shareware)</option>
+          </select>
+          <button type="button" class="doom-btn-action highlight" id="doom-btn-fullscreen" title="Jugar en pantalla completa">
+            ⛶ Pantalla Completa
+          </button>
+          <a href="https://silentspacemarine.com" target="_blank" rel="noopener noreferrer" class="doom-btn-action" title="Abrir en ventana completa">
+            ↗ Abrir Externo
+          </a>
+          <button type="button" class="doom-btn-action" id="doom-btn-reload" title="Reiniciar emulador">
+            🔄 Reiniciar
+          </button>
+        </div>
+      </div>
+
+      <!-- Viewport del Juego DOOM -->
+      <div class="doom-viewport-card" id="doom-container-card">
+        <div class="doom-aspect-ratio">
+          <iframe
+            id="doom-frame"
+            class="doom-frame"
+            title="DOOM 1993"
+            allow="autoplay; fullscreen; keyboard-map; gamepad"
+            allowfullscreen
+            loading="lazy">
+          </iframe>
+          <div class="doom-loader" id="doom-loader">
+            <div class="spinner"></div>
+            <p style="font-weight:700; margin:0;">Iniciando motor WebAssembly de DOOM…</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Consejo para Móviles -->
+      <div class="doom-mobile-tips">
+        <span class="doom-tip-icon">📱</span>
+        <div class="doom-tip-content">
+          <h4>Consejo para jugar en Celular</h4>
+          <p>
+            Para la mejor experiencia en teléfonos, <strong>gira tu dispositivo a modo horizontal (apaisado)</strong> y presiona el botón <strong>"Pantalla Completa"</strong>. En la pantalla aparecerán <strong>dos joysticks táctiles virtuales</strong> para moverte con el pulgar izquierdo y apuntar/disparar con el pulgar derecho.
+          </p>
+        </div>
+      </div>
+
+      <!-- Guía de Controles -->
+      <div class="doom-controls-guide">
+        <div class="guide-box">
+          <h4><span>📱</span> Controles en Móvil (Táctil)</h4>
+          <ul class="guide-list">
+            <li><span>Moverte y esquivar</span> <span class="key-badge">Joystick Izquierdo</span></li>
+            <li><span>Girar cámara y apuntar</span> <span class="key-badge">Joystick Derecho</span></li>
+            <li><span>Disparar / Accionar</span> <span class="key-badge">Tap / Botón Derecho</span></li>
+          </ul>
+        </div>
+        <div class="guide-box">
+          <h4><span>⌨️</span> Controles en PC (Teclado)</h4>
+          <ul class="guide-list">
+            <li><span>Moverte</span> <span class="key-badge">Flechas / WASD</span></li>
+            <li><span>Disparar arma</span> <span class="key-badge">Ctrl / Clic</span></li>
+            <li><span>Abrir puertas / Interruptores</span> <span class="key-badge">Espacio</span></li>
+            <li><span>Cambiar de arma</span> <span class="key-badge">1 · 2 · 3 · 4 · 5 · 6 · 7</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="app.js"></script>
+<script src="games.js"></script>
 </body>
 </html>

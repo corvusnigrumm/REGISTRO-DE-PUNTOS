@@ -794,8 +794,15 @@ function renderHistory(person) {
    ========================================================================== */
 let chartLine = null, chartBars = null;
 
+function isDarkThemeActive() {
+  const theme = document.documentElement.getAttribute("data-theme");
+  if (theme === "dark") return true;
+  if (theme === "light") return false;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
 function getChartColors() {
-  const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const isDark = isDarkThemeActive();
   return {
     text: isDark ? "#b8bfbb" : "#4a5451",
     grid: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
@@ -1240,7 +1247,9 @@ async function triggerDataSync(isManual = false) {
     state.loaded = true;
 
     $("#initial-loading")?.classList.add("hidden");
-    $("#dashboard")?.classList.remove("hidden");
+    if (!window.currentAppTab || window.currentAppTab === "dashboard") {
+      $("#dashboard")?.classList.remove("hidden");
+    }
 
     renderPersonSelector();
     render();
@@ -1311,9 +1320,77 @@ document.addEventListener("visibilitychange", () => {
 });
 
 /* ==========================================================================
+   SISTEMA DE MODO OSCURO / MODO CLARO
+   ========================================================================== */
+function initTheme() {
+  const btnToggle = document.getElementById("btn-theme-toggle");
+  const themeText = document.getElementById("theme-btn-text");
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+
+  function getCurrentTheme() {
+    const attr = document.documentElement.getAttribute("data-theme");
+    if (attr === "dark" || attr === "light") return attr;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function updateUI(theme) {
+    if (themeText) {
+      themeText.textContent = theme === "dark" ? "Claro" : "Oscuro";
+    }
+    if (btnToggle) {
+      const label = theme === "dark" ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro";
+      btnToggle.setAttribute("title", label);
+      btnToggle.setAttribute("aria-label", label);
+    }
+    if (metaTheme) {
+      metaTheme.setAttribute("content", theme === "dark" ? "#0d1310" : "#1f5d3d");
+    }
+  }
+
+  function applyTheme(theme, save = true) {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (save) {
+      try {
+        localStorage.setItem("app_theme", theme);
+      } catch (e) {}
+    }
+    updateUI(theme);
+    // Refrescar gráficos dinámicamente si los datos están listos
+    if (state.loaded) {
+      const person = currentPerson();
+      if (person) renderCharts(computeStats(person));
+    }
+  }
+
+  // Inicializar estado de interfaz
+  const current = getCurrentTheme();
+  updateUI(current);
+
+  if (btnToggle) {
+    btnToggle.addEventListener("click", () => {
+      const curr = getCurrentTheme();
+      const next = curr === "dark" ? "light" : "dark";
+      applyTheme(next, true);
+      toast(next === "dark" ? "Modo oscuro activado" : "Modo claro activado", "info", 2000);
+    });
+  }
+
+  // Escuchar cambios del sistema operativo si no hay elección manual guardada
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    let saved = null;
+    try { saved = localStorage.getItem("app_theme"); } catch (err) {}
+    if (!saved) {
+      applyTheme(e.matches ? "dark" : "light", false);
+    }
+  });
+}
+
+/* ==========================================================================
    INICIALIZACIÓN
    ========================================================================== */
 async function init() {
+  initTheme();
+
   const header = $("#header");
   const onScroll = () => {
     if (window.scrollY > 10) header.classList.add("scrolled");

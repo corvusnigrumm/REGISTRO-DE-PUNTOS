@@ -1,3 +1,5 @@
 .DS_Store
 Thumbs.db
 *.log
+scratch_*.csv
+pubhtml_*.html

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Presentación - Registro de Puntos: Camino a los 2000</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+    @page {
+      size: A4 landscape;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #080f0c;
+      color: #e5ece8;
+      line-height: 1.45;
+    }
+
+    .slide {
+      width: 297mm;
+      height: 210mm;
+      padding: 16mm 20mm;
+      position: relative;
+      page-break-after: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      background: radial-gradient(circle at 85% 15%, rgba(31, 93, 61, 0.35) 0%, transparent 60%),
+                  radial-gradient(circle at 10% 85%, rgba(201, 162, 79, 0.18) 0%, transparent 55%),
+                  linear-gradient(145deg, #07100d 0%, #0e1e17 50%, #091310 100%);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Decoraciones de fondo */
+    .slide::before {
+      content: "";
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(201, 162, 79, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Encabezados y títulos */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8mm;
+    }
+
+    .header-left {
+      max-width: 80%;
+    }
+
+    .tag-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(201, 162, 79, 0.15);
+      border: 1px solid rgba(201, 162, 79, 0.4);
+      color: #ffd67a;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 6px;
+    }
+
+    .slide-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+
+    .slide-subtitle {
+      font-size: 13px;
+      color: #9cb3a8;
+      margin-top: 3px;
+      font-weight: 400;
+    }
+
+    .step-number {
+      font-family: 'Outfit', sans-serif;
+      font-size: 38px;
+      font-weight: 800;
+      color: rgba(201, 162, 79, 0.35);
+      line-height: 1;
+    }
+
+    /* Contenido de diapositivas */
+    .slide-content {
+      flex: 1;
+      padding: 8mm 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* Grid de tarjetas */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 16px 18px;
+      position: relative;
+    }
+
+    .card-highlight {
+      background: linear-gradient(135deg, rgba(31, 93, 61, 0.25) 0%, rgba(201, 162, 79, 0.12) 100%);
+      border: 1px solid rgba(201, 162, 79, 0.4);
+    }
+
+    .card-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .card-text {
+      font-size: 12.5px;
+      color: #b5c7bf;
+      line-height: 1.5;
+    }
+
+    .analogy-box {
+      margin-top: 14px;
+      background: rgba(201, 162, 79, 0.08);
+      border-left: 3px solid #c9a24f;
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      color: #ffdca1;
+      font-style: italic;
+    }
+
+    .analogy-box strong {
+      font-style: normal;
+      color: #ffffff;
+    }
+
+    /* Footer de diapositiva */
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 5mm;
+      font-size: 11px;
+      color: #728c80;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      color: #a4beaf;
+    }
+
+    /* Portada Específica */
+    .slide-cover {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: radial-gradient(circle at 50% 40%, rgba(31, 93, 61, 0.5) 0%, transparent 65%),
+                  radial-gradient(circle at 50% 80%, rgba(201, 162, 79, 0.25) 0%, transparent 55%),
+                  #07100d;
+    }
+
+    .cover-trophy {
+      font-size: 64px;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 0 25px rgba(201, 162, 79, 0.6));
+    }
+
+    .cover-badge {
+      display: inline-block;
+      background: rgba(201, 162, 79, 0.2);
+      border: 1px solid #c9a24f;
+      color: #ffd77e;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .cover-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 44px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.15;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+
+    .cover-title span {
+      background: linear-gradient(90deg, #ffde8a, #c9a24f);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .cover-desc {
+      font-size: 16px;
+      color: #b9cfc4;
+      max-width: 650px;
+      margin: 0 auto 28px auto;
+      line-height: 1.6;
+    }
+
+    .cover-meta {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      font-size: 12.5px;
+      color: #8da699;
+    }
+
+    .cover-meta div {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .cover-meta strong {
+      color: #ffffff;
+    }
+
+    /* Diagrama de flujo */
+    .flow-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .flow-step {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .flow-arrow {
+      color: #c9a24f;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .flow-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #c9a24f;
+      color: #0c1814;
+      font-weight: 800;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+
+    /* Listas con viñetas elegantes */
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: #c7d8cf;
+    }
+
+    .feature-list li span.bullet {
+      background: rgba(201, 162, 79, 0.2);
+      color: #ffd883;
+      border-radius: 6px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== DIAPOSITIVA 1: PORTADA ==================== -->
+  <div class="slide slide-cover">
+    <div class="cover-trophy">🏆</div>
+    <div class="cover-badge">Guía Explicativa Paso a Paso</div>
+    <h1 class="cover-title">
+      Camino a los <span>2.000 Puntos</span>
+    </h1>
+    <p class="cover-desc">
+      Cómo convertimos una simple hoja de cálculo en una aplicación web interactiva, moderna y con sincronización en tiempo real.
+    </p>
+    <div class="cover-meta">
+      <div>👤 <strong>Audiencia:</strong> Sin conocimientos de programación</div>
+      <div>🎯 <strong>Protagonistas:</strong> Leonardo & Felipe</div>
+      <div>⚡ <strong>Meta:</strong> Recompensa de 2.000 Puntos</div>
+    </div>
+  </div>
+
+  <!-- ==================== DIAPOSITIVA 2: LA IDEA Y EL DESAFÍO ==================== -->
+  <div class="slide">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="tag-badge">Paso 01 • Origen del Proyecto</div>
+        <h2 class="slide-title">La Idea y el Reto de Motivación</h2>
+        <p class="slide-subtitle">Convertir la disciplina y los hábitos personales en un videojuego real (Gamificación).</p>
+      </div>
+      <div class="step-number">01</div>
+    </div>
+
+    <div class="slide-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <div class="card-title">El Objetivo Principal</div>
+          <p class="card-text">
+            Crear un incentivo genuino para cumplir metas saludables diarias (hacer ejercicio, desconectarse de redes sociales, buena convivencia) y castigar tropiezos, compitiendo sanamente hasta acumular <strong>2.000 puntos</strong> para reclamar un videojuego.
+          </p>
+          <div class="analogy-box">
+            <strong>¿Por qué un juego?</strong> Cuando las metas se vuelven visuales y tienen recompensas claras, la motivación diaria se multiplica.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">💡</div>
+          <div class="card-title">El Problema con los Métodos Clásicos</div>
+          <p class="card-text">
+            Anotar números en una libreta de papel o en una tabla aburrida de Excel hace que la gente pierda el interés a los pocos días:
+          </p>
+          <ul class="feature-list" style="margin-top: 10px;">
+            <li><span class="bullet">✖</span> Nadie quiere ver celdas grises y números estáticos.</li>
+            <li><span class="bullet">✖</span> No transmiten la sensación de progreso ni de emoción.</li>
+            <li><span class="bullet">✔</span> Hacía falta un <strong>marcador digital vivo</strong>, como el tablero de un estadio.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">🏆 Registro de Puntos — Leonardo & Felipe</div>
+      <div>Diapositiva 2 de 8</div>
+    </div>
+  </div>
+
+  <!-- ==================== DIAPOSITIVA 3: LA LIBRETA MAESTRA ==================== -->
+  <div class="slide">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="tag-badge">Paso 02 • Estructura de Datos</div>
+        <h2 class="slide-title">Google Sheets: La Libreta Maestra</h2>
+        <p class="slide-subtitle">El lugar donde se guardan las reglas, los valores y cada registro de puntos.</p>
+      </div>
+      <div class="step-number">02</div>
+    </div>
+
+    <div class="slide-content">
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">📋</div>
+          <div class="card-title">1. Reglas Claras</div>
+          <p class="card-text">
+            Se acordó el "menú" de puntos:
+            <br><br>
+            • <strong>Día sin redes:</strong> +50 pts<br>
+            • <strong>Día de gimnasio:</strong> +20 pts<br>
+            • <strong>Conseguir novia:</strong> +150 pts<br>
+            • <strong>Chiste bueno:</strong> +15 pts
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">⚠️</div>
+          <div class="card-title">2. Las Penalizaciones</div>
+          <p class="card-text">
+            Para que el juego sea serio:
+            <br><br>
+            • <strong>Instalar redes:</strong> -400 pts<br>
+            • <strong>Ausencias:</strong> -50 pts<br>
+            • <strong>Chiste malo:</strong> -30 pts<br>
+            • <strong>Falta ortográfica:</strong> -15 a -30 pts
+          </p>
+        </div>
+
+        <div class="card card-highlight">
+          <div class="card-icon">📱</div>
+          <div class="card-title">¿Por qué Google Sheets?</div>
+          <p class="card-text">
+            Porque <strong>no requiere aprender nada difícil</strong>. Cualquier persona puede abrir su teléfono móvil, escribir un registro en 5 segundos y listo.
+          </p>
+          <div class="analogy-box">
+            <strong>Analogía:</strong> Es como la cocina de un restaurante: sencilla y práctica para preparar los datos.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">🏆 Registro de Puntos — Leonardo & Felipe</div>
+      <div>Diapositiva 3 de 8</div>
+    </div>
+  </div>
+
+  <!-- ==================== DIAPOSITIVA 4: EL DISEÑO VISUAL ==================== -->
+  <div class="slide">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="tag-badge">Paso 03 • Experiencia de Usuario</div>
+        <h2 class="slide-title">El Salón de la Fama: El Diseño Visual</h2>
+        <p class="slide-subtitle">Transformando una tabla aburrida en un tablero interactivo y de alta gama.</p>
+      </div>
+      <div class="step-number">03</div>
+    </div>
+
+    <div class="slide-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">✨</div>
+          <div class="card-title">Elementos Visuales Clave</div>
+          <ul class="feature-list" style="margin-top: 8px;">
+            <li><span class="bullet">🏆</span> <strong>Banner Dorado Shimmer:</strong> Refleja una luz deslizante que mantiene el premio siempre a la vista.</li>
+            <li><span class="bullet">⭕</span> <strong>Anillo Circular con Chispa:</strong> Un arco que se ilumina con una chispa brillante indicando el porcentaje exacto completado.</li>
+            <li><span class="bullet">🪐</span> <strong>Fondo Dinámico:</strong> Luces y orbes flotantes que dan vida a la pantalla en todo momento.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🎮</div>
+          <div class="card-title">Micro-Interacciones de Videojuego</div>
+          <ul class="feature-list" style="margin-top: 8px;">
+            <li><span class="bullet">🥉</span> <strong>Hitos automáticos:</strong> Medallas al 25%, 50% y 75% que se encienden solas al cruzar la meta.</li>
+            <li><span class="bullet">🎴</span> <strong>Tarjetas 3D (Tilt):</strong> Las tarjetas se inclinan suavemente siguiendo el movimiento del cursor.</li>
+            <li><span class="bullet">🔢</span> <strong>Conteo Animado:</strong> Al cambiar de jugador, los números suben como un marcador electrónico.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="analogy-box" style="margin-top: 14px;">
+        <strong>Analogía:</strong> Si Google Sheets es la libreta de apuntes, la Web es el showroom lujoso donde se exhiben los trofeos con luces de gala.
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">🏆 Registro de Puntos — Leonardo & Felipe</div>
+      <div>Diapositiva 4 de 8</div>
+    </div>
+  </div>
+
+  <!-- ==================== DIAPOSITIVA 5: EL MENSAJERO EN TIEMPO REAL ==================== -->
+  <div class="slide">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="tag-badge">Paso 04 • La Conexión</div>
+        <h2 class="slide-title">El Mensajero Digital: Tiempo Real</h2>
+        <p class="slide-subtitle">Cómo logramos que la web se entere al instante de lo que escribes en la hoja.</p>
+      </div>
+      <div class="step-number">04</div>
+    </div>
+
+    <div class="slide-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">🐢</div>
+          <div class="card-title">El Obstáculo: El Retraso de Google</div>
+          <p class="card-text">
+            Por defecto, cuando compartes una hoja de Google en la web, los servidores de Google se quedan con una copia guardada y <strong>tardan entre 5 y 10 minutos</strong> en refrescarse.
+            <br><br>
+            ¡Esperar 10 minutos para ver si subiste de nivel arruina la emoción!
+          </p>
+        </div>
+
+        <div class="card card-highlight">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">La Solución: El Canal Directo</div>
+          <p class="card-text">
+            Construimos un "túnel directo" que se conecta a la hoja en vivo.
+            <br><br>
+            • <strong>Velocidad:</strong> Cualquier cambio aparece en <strong>menos de 1 segundo</strong>.<br>
+            • <strong>Sensor automático:</strong> La pantalla revisa sola cada 15 segundos.<br>
+            • <strong>Semáforo verde:</strong> Un bombillo luminoso confirma que todo está sincronizado.
+          </p>
+        </div>
+      </div>
+
+      <div class="analogy-box">
+        <strong>Analogía:</strong> En lugar de esperar a que el correo postal entregue una carta una vez por semana, instalamos un intercomunicador de radio instantáneo entre Google Sheets y la pantalla.
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">🏆 Registro de Puntos — Leonardo & Felipe</div>
+      <div>Diapositiva 5 de 8</div>
+    </div>
+  </div>
+
+  <!-- ==================== DIAPOSITIVA 6: GRÁFICOS Y ANÁLISIS ==================== -->
+  <div class="slide">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="tag-badge">Paso 05 • Análisis Inteligente</div>
+        <h2 class="slide-title">Gráficos y Estadísticas Automáticas</h2>
+        <p class="slide-subtitle">La aplicación hace todas las matemáticas difíciles para que tú solo disfrutes el progreso.</p>
+      </div>
+      <div class="step-number">05</div>
+    </div>
+
+    <div class="slide-content">
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">📈</div>
+          <div class="card-title">Evolución a 30 Días</div>
+          <p class="card-text">
+            Una línea fluida con gradientes de color que dibuja la trayectoria del jugador. Permite ver si el participante está en racha positiva o si viene saliendo de una caída de puntos.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <div class="card-title">Puntos por Jornada</div>
+          <p class="card-text">
+            Barras verticales modernas que destacan los días más productivos frente a los días difíciles, identificando patrones y hábitos constantes.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">👥</div>
+          <div class="card-title">Comparador de Jugadores</div>
+          <p class="card-text">
+            Con un solo clic se puede alternar entre <strong>Leonardo</strong> y <strong>Felipe</strong> para ver quién va a la delantera y cuánto le falta a cada uno para llegar a la gloria.
+          </p>
+        </div>
+      </div>
+
+      <div class="analogy-box" style="margin-top: 14px;">
+        <strong>Cero esfuerzo mental:</strong> Nadie tiene que sumar, restar ni calcular porcentajes en calculadora. La aplicación procesa cientos de filas en milisegundos.
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">🏆 Registro de Puntos — Leonardo & Felipe</div>
+      <div>Diapositiva 6 de 8</div>
+    </div>
+  </div>
+
+  <!-- ==================== DIAPOSITIVA 7: LANZAMIENTO A INTERNET ==================== -->
+  <div class="slide">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="tag-badge">Paso 06 • Puesta en Producción</div>
+        <h2 class="slide-title">El Lanzamiento al Mundo (En la Nube)</h2>
+        <p class="slide-subtitle">Haciendo que la aplicación esté disponible 24/7 en cualquier celular o computador.</p>
+      </div>
+      <div class="step-number">06</div>
+    </div>
+
+    <div class="slide-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">☁️</div>
+          <div class="card-title">Despliegue con Render</div>
+          <p class="card-text">
+            Originalmente el proyecto existía solo en una computadora. Para que cualquiera pudiera entrar desde su teléfono móvil, se alojó en la plataforma en la nube <strong>Render</strong>.
+            <br><br>
+            • <strong>Acceso universal:</strong> Solo abres un enlace en el navegador.<br>
+            • <strong>Cero instalaciones:</strong> No requiere descargar apps de la Play Store ni App Store.<br>
+            • <strong>Seguro y gratuito:</strong> Funciona 24 horas al día sin costo.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📱</div>
+          <div class="card-title">Diseño Adaptable (Responsive)</div>
+          <p class="card-text">
+            La pantalla se amolda mágicamente:
+            <br><br>
+            • Si la abres en un <strong>computador grande</strong>, aprovecha todo el espacio mostrando tarjetas anchas y gráficos panorámicos.<br>
+            • Si la abres en un <strong>teléfono móvil</strong>, reorganiza todo verticalmente para que sea cómodo de tocar con un solo dedo.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">🏆 Registro de Puntos — Leonardo & Felipe</div>
+      <div>Diapositiva 7 de 8</div>
+    </div>
+  </div>
+
+  <!-- ==================== DIAPOSITIVA 8: RESUMEN Y CONCLUSIÓN ==================== -->
+  <div class="slide">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="tag-badge">Resumen Final • Arquitectura Simple</div>
+        <h2 class="slide-title">Cómo Funciona Todo Junto</h2>
+        <p class="slide-subtitle">El ciclo completo desde que anotas un punto hasta que se celebra en pantalla.</p>
+      </div>
+      <div class="step-number">08</div>
+    </div>
+
+    <div class="slide-content">
+      <div class="flow-container">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div style="font-size: 20px; margin-bottom: 4px;">📝</div>
+          <strong style="color: #ffffff; font-size: 13px;">Google Sheets</strong>
+          <p style="font-size: 11px; color: #9bb3a6; margin-top: 4px;">Escribes el hábito cumplido en tu celular</p>
+        </div>
+
+        <div class="flow-arrow">➔</div>
+
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div style="font-size: 20px; margin-bottom: 4px;">⚡</div>
+          <strong style="color: #ffffff; font-size: 13px;">Mensajero Directo</strong>
+          <p style="font-size: 11px; color: #9bb3a6; margin-top: 4px;">Lee el cambio en menos de 1 segundo</p>
+        </div>
+
+        <div class="flow-arrow">➔</div>
+
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div style="font-size: 20px; margin-bottom: 4px;">🎨</div>
+          <strong style="color: #ffffff; font-size: 13px;">Tablero Web</strong>
+          <p style="font-size: 11px; color: #9bb3a6; margin-top: 4px;">Anillo animado, gráficos y medallas 3D</p>
+        </div>
+
+        <div class="flow-arrow">➔</div>
+
+        <div class="flow-step" style="border-color: rgba(201, 162, 79, 0.4); background: rgba(201, 162, 79, 0.08);">
+          <div class="flow-num">4</div>
+          <div style="font-size: 20px; margin-bottom: 4px;">🏆</div>
+          <strong style="color: #ffd67a; font-size: 13px;">¡2.000 Puntos!</strong>
+          <p style="font-size: 11px; color: #9bb3a6; margin-top: 4px;">Reclamo de la recompensa pactada</p>
+        </div>
+      </div>
+
+      <div class="card card-highlight" style="margin-top: 18px; padding: 14px 18px;">
+        <div class="card-title" style="font-size: 14px; margin-bottom: 4px;">🌟 La Lección Más Importante</div>
+        <p class="card-text" style="font-size: 12px;">
+          La mejor tecnología no es la más enredada ni la más difícil de entender: es aquella que toma herramientas cotidianas (como Google Sheets) y las viste con una experiencia tan atractiva que <strong>inspira y motiva a las personas a ser constantes todos los días</strong>.
+        </p>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">🏆 Registro de Puntos — Leonardo & Felipe</div>
+      <div>Diapositiva 8 de 8 • Fin de la Presentación</div>
+    </div>
+  </div>
+
+</body>
+</html>
