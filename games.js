@@ -715,6 +715,12 @@
       const h = this.canvas.height;
       const cp = this.cellPixel;
 
+      // Recorte suave con bordes redondeados para evitar esquinas cuadradas ('chuzos')
+      const cornerR = 18 * (window.devicePixelRatio || 1);
+      ctx.save();
+      this.roundRect(ctx, 0, 0, w, h, cornerR);
+      ctx.clip();
+
       // Fondo: Imagen personalizada solicitada por el usuario
       if (this.bgImgLoaded && this.bgImg.complete && this.bgImg.naturalWidth > 0) {
         ctx.drawImage(this.bgImg, 0, 0, w, h);
@@ -881,6 +887,7 @@
         ctx.fill();
       }
       ctx.globalAlpha = 1.0;
+      ctx.restore();
     }
 
     roundRect(ctx, x, y, width, height, radius) {

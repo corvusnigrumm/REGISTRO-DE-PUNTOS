@@ -307,9 +307,14 @@
   aspect-ratio: 1 / 1;
   border-radius: 20px;
   overflow: hidden;
+  /* Eliminar esquinas cuadradas ('chuzos') y garantizar recorte perfecto */
+  isolation: isolate;
+  transform: translateZ(0);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
+  border: 3px solid #1f5d3d;
   box-shadow:
-    0 0 0 3px #1f5d3d,
-    0 0 0 5px #0a1208,
+    0 0 0 2px #0a1208,
     0 20px 50px rgba(0, 0, 0, 0.5),
     0 0 40px rgba(31, 93, 61, 0.2);
   touch-action: none;
@@ -323,12 +328,14 @@
   display: block;
   touch-action: none;
   cursor: pointer;
+  border-radius: 17px;
 }
 
 /* Overlay de inicio / pausa / game over */
 .snake-overlay {
   position: absolute;
   inset: 0;
+  border-radius: 17px;
   display: flex;
   flex-direction: column;
   align-items: center;
