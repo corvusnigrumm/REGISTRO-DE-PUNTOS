@@ -57,6 +57,16 @@ const DEFAULTS = [
       ['Ausencia', -50, ''],
       ['Otro', null, '']
     ]
+  },
+  {
+    key: 'p3', index: 2, col: 9, name: 'Sebastian', goal: 2000,
+    reward: '(Define la recompensa)',
+    cats: [
+      ['Día sin groserías', 100, 'sinGroserias'],
+      ['Grosería', -15, ''],
+      ['Conseguir novia', 150, ''],
+      ['Otro', null, '']
+    ]
   }
 ];
 
@@ -68,6 +78,7 @@ function onOpen() {
     .addItem('📊 Abrir panel', 'openPanel')
     .addSeparator()
     .addItem('⚙️ Configuración inicial / actualizar hojas', 'setup')
+    .addItem('➕ Crear / actualizar hoja de Sebastian', 'agregarSebastian')
     .addToUi();
 }
 
@@ -79,25 +90,57 @@ function openPanel() {
 
 /** Crea o actualiza todo. Si ya había hojas de una versión anterior, conserva sus registros. */
 function setup() {
-  const ss = SpreadsheetApp.getActive();
-  PropertiesService.getScriptProperties().setProperty('SS_ID', ss.getId());
-  if (!ss.getSheetByName(CONFIG_SHEET)) createConfig_();
+  PropertiesService.getScriptProperties().setProperty('SS_ID', SpreadsheetApp.getActive().getId());
+  ensureConfig_();
   ensureData_();
 
-  let first = null;
-  DEFAULTS.forEach(d => {
-    const old = findSheet_(d);
-    if (old && sheetVer_(old) >= SHEET_VER) { first = first || old; return; }
-    let recs = [];
-    if (old) { recs = readOldRecords_(old); ss.deleteSheet(old); }
-    const sh = createPersonSheet_(d, recs);
-    first = first || sh;
+  var firstSheet = null;
+  var processedNames = [];
+  DEFAULTS.forEach(function(d) {
+    var existingSheet = findSheet_(d);
+    if (existingSheet && sheetVer_(existingSheet) >= SHEET_VER) {
+      firstSheet = firstSheet || existingSheet;
+      processedNames.push(d.name + ' (al día)');
+      return;
+    }
+    var recs = [];
+    if (existingSheet) {
+      recs = readOldRecords_(existingSheet);
+      SpreadsheetApp.getActive().deleteSheet(existingSheet);
+    }
+    var sh = createPersonSheet_(d, recs);
+    processedNames.push(d.name + ' (creada)');
+    firstSheet = firstSheet || sh;
   });
 
-  const ds = ss.getSheetByName(DATA_SHEET);
-  if (first) ss.setActiveSheet(first);
+  var ds = SpreadsheetApp.getActive().getSheetByName(DATA_SHEET);
+  if (firstSheet) SpreadsheetApp.getActive().setActiveSheet(firstSheet);
   if (ds && !ds.isSheetHidden()) ds.hideSheet();
-  SpreadsheetApp.getUi().alert('Listo. Usa el menú Puntos > Abrir panel para registrar puntos.');
+
+  SpreadsheetApp.getUi().alert(
+    'Estado de las hojas:\n• ' + processedNames.join('\n• ') +
+    '\n\nUsa el menú Puntos > Abrir panel para registrar puntos.'
+  );
+}
+
+/** Función directa para crear o actualizar la hoja de Sebastian */
+function agregarSebastian() {
+  PropertiesService.getScriptProperties().setProperty('SS_ID', SpreadsheetApp.getActive().getId());
+  ensureConfig_();
+  ensureData_();
+
+  var d = defByKey_('p3');
+  if (!d) throw new Error('No se encontró la configuración de Sebastian.');
+
+  var existingSheet = findSheet_(d);
+  var recs = [];
+  if (existingSheet) {
+    recs = readOldRecords_(existingSheet);
+    SpreadsheetApp.getActive().deleteSheet(existingSheet);
+  }
+  var sh = createPersonSheet_(d, recs);
+  SpreadsheetApp.getActive().setActiveSheet(sh);
+  SpreadsheetApp.getUi().alert('✅ ¡Hoja de Sebastian creada y configurada con éxito!\nYa puedes registrar sus puntos en su hoja o desde el panel.');
 }
 
 /* =====================  UTILIDADES  ===================== */
@@ -116,7 +159,15 @@ function parseDate_(s) {
 }
 function today_() { return parseDate_(fmt_(new Date())); }
 function toast_(msg) { try { ss_().toast(msg, 'Puntos', 4); } catch (e) { /* ignorar */ } }
-function colL_(n) { return String.fromCharCode(64 + n); }
+function colL_(n) {
+  let s = '';
+  while (n > 0) {
+    const m = (n - 1) % 26;
+    s = String.fromCharCode(65 + m) + s;
+    n = Math.floor((n - 1) / 26);
+  }
+  return s;
+}
 function qs_(name) { return "'" + name.replace(/'/g, "''") + "'!"; }
 
 function withLock_(fn) {
@@ -138,7 +189,10 @@ function sheetVer_(sh) {
   return m ? Number(m[1]) : 3;
 }
 function findSheet_(def) {
-  return ss_().getSheets().find(s => getKey_(s) === def.key) || null;
+  const sheets = ss_().getSheets();
+  return sheets.find(s => getKey_(s) === def.key) ||
+         sheets.find(s => s.getName().trim().toLowerCase() === def.name.trim().toLowerCase()) ||
+         null;
 }
 
 function readConfig_(def) {
@@ -166,80 +220,137 @@ function readOldRecords_(sh) {
 
 /* =====================  HOJA CONFIGURACIÓN  ===================== */
 
-function createConfig_() {
-  const sh = ss_().insertSheet(CONFIG_SHEET);
-  const B = SpreadsheetApp.BorderStyle;
-  sh.setHiddenGridlines(true);
-  sh.setTabColor(COLORS.dark);
-  if (sh.getMaxColumns() > 7) sh.deleteColumns(8, sh.getMaxColumns() - 7);
-  [300, 100, 170, 24, 300, 100, 170].forEach((w, i) => sh.setColumnWidth(i + 1, w));
-  sh.getRange(1, 1, 40, 7).setFontFamily('Arial').setFontSize(10).setVerticalAlignment('middle').setBackground(COLORS.page);
+function safeMergeRow_(sh, r, c1, numCols) {
+  try {
+    sh.getRange(r, 1, 1, sh.getMaxColumns()).breakApart();
+  } catch (e) {}
+  const target = sh.getRange(r, c1, 1, numCols);
+  try {
+    target.merge();
+  } catch (e) {
+    try {
+      for (let c = c1; c < c1 + numCols; c++) {
+        const cell = sh.getRange(r, c);
+        if (cell.isPartOfMerge()) cell.breakApart();
+      }
+      target.merge();
+    } catch (e2) {}
+  }
+  return target;
+}
 
-  sh.getRange('A1:G1').merge().setValue('Configuración')
+function ensureConfig_() {
+  var activeSpreadsheet = ss_();
+  var sheetConfig = activeSpreadsheet.getSheetByName(CONFIG_SHEET);
+  if (!sheetConfig) sheetConfig = activeSpreadsheet.insertSheet(CONFIG_SHEET);
+
+  var borderStyle = SpreadsheetApp.BorderStyle;
+  sheetConfig.setHiddenGridlines(true);
+  sheetConfig.setTabColor(COLORS.dark);
+
+  var totalCols = DEFAULTS.length * 4 - 1;
+  if (sheetConfig.getMaxColumns() < totalCols) {
+    sheetConfig.insertColumnsAfter(sheetConfig.getMaxColumns(), totalCols - sheetConfig.getMaxColumns());
+  } else if (sheetConfig.getMaxColumns() > totalCols && sheetConfig.getMaxColumns() > 11) {
+    sheetConfig.deleteColumns(totalCols + 1, sheetConfig.getMaxColumns() - totalCols);
+  }
+
+  var colWidths = [];
+  DEFAULTS.forEach((d, idx) => {
+    colWidths.push(300, 100, 170);
+    if (idx < DEFAULTS.length - 1) colWidths.push(24);
+  });
+  colWidths.forEach((w, i) => sheetConfig.setColumnWidth(i + 1, w));
+  sheetConfig.getRange(1, 1, 40, totalCols).setFontFamily('Arial').setFontSize(10).setVerticalAlignment('middle').setBackground(COLORS.page);
+
+  safeMergeRow_(sheetConfig, 1, 1, totalCols).setValue('Configuración')
     .setBackground(COLORS.dark).setFontColor('#ffffff').setFontSize(20).setFontWeight('bold');
-  sh.setRowHeight(1, 50);
-  sh.getRange('A2:G2').merge().setWrap(true).setFontStyle('italic').setFontColor(COLORS.muted)
+  sheetConfig.setRowHeight(1, 50);
+
+  safeMergeRow_(sheetConfig, 2, 1, totalCols).setWrap(true).setFontStyle('italic').setFontColor(COLORS.muted)
     .setValue('Edita aquí nombres, metas, recompensas, categorías y puntos: las hojas y el panel se actualizan solos. ' +
       'Puntos vacíos = a criterio. Grupo = solo se permite un registro por día dentro del mismo grupo.');
-  sh.setRowHeight(2, 40);
+  sheetConfig.setRowHeight(2, 40);
 
-  sh.getRange('A3:G3').setBackground(COLORS.dark).setFontColor('#ffffff').setFontWeight('bold');
-  sh.getRange('A3').setValue('Persona');
-  sh.getRange('B3').setValue('Meta (puntos)');
-  sh.getRange('C3:G3').merge().setValue('Recompensa al llegar a la meta');
-  DEFAULTS.forEach(d => {
-    const r = 4 + d.index;
-    sh.getRange(r, 1, 1, 2).setValues([[d.name, d.goal]]);
-    sh.getRange(r, 3, 1, 5).merge().setValue(d.reward);
-    sh.getRange(r, 1, 1, 7).setBackground('#ffffff')
-      .setBorder(true, true, true, true, false, false, COLORS.line, B.SOLID);
-    sh.getRange(r, 2).setBackground(COLORS.input).setNumberFormat('#,##0').setHorizontalAlignment('center');
-    sh.setRowHeight(r, 28);
-  });
-
-  sh.getRange('A7').setValue('CATEGORÍAS Y PUNTOS').setFontWeight('bold').setFontColor(COLORS.dark);
-  sh.getRange('A7:G7').setBorder(null, null, true, null, null, null, COLORS.gold, B.SOLID_MEDIUM);
-  sh.setRowHeight(7, 28);
+  sheetConfig.getRange(3, 1, 1, totalCols).setBackground(COLORS.dark).setFontColor('#ffffff').setFontWeight('bold');
+  sheetConfig.getRange('A3').setValue('Persona');
+  sheetConfig.getRange('B3').setValue('Meta (puntos)');
+  safeMergeRow_(sheetConfig, 3, 3, totalCols - 2).setValue('Recompensa al llegar a la meta');
 
   DEFAULTS.forEach(d => {
-    const c = d.col;
-    sh.getRange(8, c).setFormula('=$A$' + (4 + d.index) + '&" · categoría"');
-    sh.getRange(8, c + 1).setValue('Puntos');
-    sh.getRange(8, c + 2).setValue('Grupo');
-    sh.getRange(8, c, 1, 3).setBackground(COLORS.dark).setFontColor('#ffffff').setFontWeight('bold');
-    const vals = [];
-    for (let i = 0; i < CAT_ROWS; i++) {
-      const k = d.cats[i];
-      vals.push(k ? [k[0], k[1] === null ? '' : k[1], k[2]] : ['', '', '']);
+    var r = 4 + d.index;
+    var curName = sheetConfig.getRange(r, 1).getValue();
+    if (!curName) {
+      sheetConfig.getRange(r, 1, 1, 2).setValues([[d.name, d.goal]]);
+      safeMergeRow_(sheetConfig, r, 3, totalCols - 2).setValue(d.reward);
+    } else {
+      var curReward = sheetConfig.getRange(r, 3).getValue();
+      safeMergeRow_(sheetConfig, r, 3, totalCols - 2).setValue(curReward || d.reward);
     }
-    sh.getRange(CAT_START, c, CAT_ROWS, 3).setValues(vals).setBackground('#ffffff')
-      .setBorder(true, true, true, true, true, true, COLORS.line, B.SOLID);
-    sh.getRange(CAT_START, c + 1, CAT_ROWS, 1).setBackground(COLORS.input)
-      .setNumberFormat('+0;-0;0').setHorizontalAlignment('center').setFontWeight('bold');
-    sh.getRange(CAT_START, c + 2, CAT_ROWS, 1).setFontColor(COLORS.muted);
+    sheetConfig.getRange(r, 1, 1, totalCols).setBackground('#ffffff')
+      .setBorder(true, true, true, true, false, false, COLORS.line, borderStyle.SOLID);
+    sheetConfig.getRange(r, 2).setBackground(COLORS.input).setNumberFormat('#,##0').setHorizontalAlignment('center');
+    sheetConfig.setRowHeight(r, 28);
   });
-  sh.setRowHeight(8, 28);
-  sh.getRange(CAT_START + CAT_ROWS + 1, 1, 1, 7).merge().setFontStyle('italic').setFontSize(9).setFontColor(COLORS.muted)
+
+  sheetConfig.getRange('A7').setValue('CATEGORÍAS Y PUNTOS').setFontWeight('bold').setFontColor(COLORS.dark);
+  sheetConfig.getRange(7, 1, 1, totalCols).setBorder(null, null, true, null, null, null, COLORS.gold, borderStyle.SOLID_MEDIUM);
+  sheetConfig.setRowHeight(7, 28);
+
+  DEFAULTS.forEach(d => {
+    var c = d.col;
+    sheetConfig.getRange(8, c).setFormula('=$A$' + (4 + d.index) + '&" · categoría"');
+    sheetConfig.getRange(8, c + 1).setValue('Puntos');
+    sheetConfig.getRange(8, c + 2).setValue('Grupo');
+    sheetConfig.getRange(8, c, 1, 3).setBackground(COLORS.dark).setFontColor('#ffffff').setFontWeight('bold');
+
+    var firstCat = sheetConfig.getRange(CAT_START, c).getValue();
+    if (!firstCat) {
+      var vals = [];
+      for (var i = 0; i < CAT_ROWS; i++) {
+        var k = d.cats[i];
+        vals.push(k ? [k[0], k[1] === null ? '' : k[1], k[2]] : ['', '', '']);
+      }
+      sheetConfig.getRange(CAT_START, c, CAT_ROWS, 3).setValues(vals);
+    }
+    sheetConfig.getRange(CAT_START, c, CAT_ROWS, 3).setBackground('#ffffff')
+      .setBorder(true, true, true, true, true, true, COLORS.line, borderStyle.SOLID);
+    sheetConfig.getRange(CAT_START, c + 1, CAT_ROWS, 1).setBackground(COLORS.input)
+      .setNumberFormat('+0;-0;0').setHorizontalAlignment('center').setFontWeight('bold');
+    sheetConfig.getRange(CAT_START, c + 2, CAT_ROWS, 1).setFontColor(COLORS.muted);
+  });
+  sheetConfig.setRowHeight(8, 28);
+
+  safeMergeRow_(sheetConfig, CAT_START + CAT_ROWS + 1, 1, totalCols).setFontStyle('italic').setFontSize(9).setFontColor(COLORS.muted)
     .setValue('El panel admite ' + CAT_ROWS + ' categorías por persona; la hoja dashboard muestra las primeras ' + SLOTS +
       '. Si cambias el nombre de una categoría, los registros antiguos conservan el nombre anterior.');
 
-  const rng = [sh.getRange(CAT_START, 2, CAT_ROWS, 1), sh.getRange(CAT_START, 6, CAT_ROWS, 1)];
-  const rules = sh.getConditionalFormatRules();
-  rules.push(
+  var rng = DEFAULTS.map(d => sheetConfig.getRange(CAT_START, d.col + 1, CAT_ROWS, 1));
+  var rules = [
     SpreadsheetApp.newConditionalFormatRule().whenNumberGreaterThan(0).setFontColor(COLORS.greenText).setRanges(rng).build(),
     SpreadsheetApp.newConditionalFormatRule().whenNumberLessThan(0).setFontColor(COLORS.redText).setRanges(rng).build()
-  );
-  sh.setConditionalFormatRules(rules);
+  ];
+  sheetConfig.setConditionalFormatRules(rules);
+  return sheetConfig;
+}
+
+function createConfig_() {
+  return ensureConfig_();
 }
 
 /* =====================  HOJA OCULTA DE DATOS PARA GRÁFICOS  ===================== */
 
 function ensureData_() {
-  const ss = ss_();
-  let ds = ss.getSheetByName(DATA_SHEET);
+  var activeSpreadsheet = ss_();
+  var ds = activeSpreadsheet.getSheetByName(DATA_SHEET);
+  const neededCols = DEFAULTS.length * 5;
   if (!ds) {
     ds = ss.insertSheet(DATA_SHEET);
-    if (ds.getMaxColumns() > 10) ds.deleteColumns(11, ds.getMaxColumns() - 10);
+  }
+  if (ds.getMaxColumns() < neededCols) {
+    ds.insertColumnsAfter(ds.getMaxColumns(), neededCols - ds.getMaxColumns());
+  } else if (ds.getMaxColumns() > neededCols) {
+    ds.deleteColumns(neededCols + 1, ds.getMaxColumns() - neededCols);
   }
   return ds;
 }
@@ -296,21 +407,21 @@ function header_(sh, row, c1, c2) {
 }
 
 function createPersonSheet_(def, records) {
-  const ss = ss_(), B = SpreadsheetApp.BorderStyle;
-  const cs = ss.getSheetByName(CONFIG_SHEET);
-  const cfg = readConfig_(def);
-  const CSQ = qs_(CONFIG_SHEET);
-  const prow = 4 + def.index;
-  const ls = LOG_START, le = LOG_START + LOG_ROWS - 1;
-  const R = c => '$' + c + '$' + ls + ':$' + c + '$' + le;
-  const DR = R('B'), CR = R('D'), PR = R('E');
-  const refEnd = REF_START + SLOTS - 1, totalRow = refEnd + 1;
-  const chartTitle = totalRow + 2, chartRow = chartTitle + 1;
-  const logTitle = LOG_START - 2, logHeader = LOG_START - 1;
+  var activeSpreadsheet = ss_(), B = SpreadsheetApp.BorderStyle;
+  var cs = activeSpreadsheet.getSheetByName(CONFIG_SHEET);
+  var cfg = readConfig_(def);
+  var CSQ = qs_(CONFIG_SHEET);
+  var prow = 4 + def.index;
+  var ls = LOG_START, le = LOG_START + LOG_ROWS - 1;
+  var R = c => '$' + c + '$' + ls + ':$' + c + '$' + le;
+  var DR = R('B'), CR = R('D'), PR = R('E');
+  var refEnd = REF_START + SLOTS - 1, totalRow = refEnd + 1;
+  var chartTitle = totalRow + 2, chartRow = chartTitle + 1;
+  var logTitle = LOG_START - 2, logHeader = LOG_START - 1;
 
-  let name = cfg.name;
-  while (ss.getSheetByName(name)) name += ' (2)';
-  const sh = ss.insertSheet(name);
+  var name = cfg.name;
+  while (activeSpreadsheet.getSheetByName(name)) name += ' (2)';
+  var sh = activeSpreadsheet.insertSheet(name);
   sh.setHiddenGridlines(true);
   sh.setTabColor(COLORS.gold);
   if (sh.getMaxColumns() > 11) sh.deleteColumns(12, sh.getMaxColumns() - 11);

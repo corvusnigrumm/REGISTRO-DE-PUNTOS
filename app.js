@@ -1,5 +1,5 @@
 /* ==========================================================================
-   app.js - Registro de Puntos (Leonardo & Felipe)
+   app.js - Registro de Puntos (Leonardo, Felipe & Sebastian)
    Sincronización en tiempo real con Google Sheets + Diseño Premium y Animado
    ========================================================================== */
 
@@ -9,8 +9,58 @@ const DEFAULT_BASE_URL = "https://docs.google.com/spreadsheets/d/e/" + DEFAULT_P
 const REFRESH_SECONDS = 15; // Actualización automática cada 15 segundos
 
 const PERSONS_CFG = [
-  { key: "p1", name: "Leonardo", gid: "802967046",  goal: 2000, reward: "Un juego con valor máximo de 200K", sheetName: "Leonardo" },
-  { key: "p2", name: "Felipe",   gid: "1517679666", goal: 2000, reward: "(Define la recompensa)",             sheetName: "Felipe"   }
+  {
+    key: "p1",
+    name: "Leonardo",
+    gid: "802967046",
+    goal: 2000,
+    reward: "Un juego con valor máximo de 200K",
+    sheetName: "Leonardo",
+    defaultCats: [
+      { name: "Día sin redes sociales", points: 50, group: "sinRedes" },
+      { name: "Chiste bueno", points: 15 },
+      { name: "Instaló redes sociales", points: -400 },
+      { name: "Error ortográfico", points: -15 },
+      { name: "Conseguir novia", points: 150 },
+      { name: "Entrar al gym", points: 100 },
+      { name: "Día gym", points: 20, group: "gym" },
+      { name: "Ausencia", points: -50 },
+      { name: "Otro", points: null }
+    ]
+  },
+  {
+    key: "p2",
+    name: "Felipe",
+    gid: "1517679666",
+    goal: 2000,
+    reward: "(Define la recompensa)",
+    sheetName: "Felipe",
+    defaultCats: [
+      { name: "Día sin temas sexuales (todos en Discord)", points: 150, group: "sinTemas" },
+      { name: "Día sin temas sexuales (solo 2 personas)", points: 100, group: "sinTemas" },
+      { name: "Chiste malo", points: -30 },
+      { name: "Error ortográfico", points: -30 },
+      { name: "Conseguir novia", points: 150 },
+      { name: "Entrar al gym", points: 100 },
+      { name: "Día gym", points: 20, group: "gym" },
+      { name: "Ausencia", points: -50 },
+      { name: "Otro", points: null }
+    ]
+  },
+  {
+    key: "p3",
+    name: "Sebastian",
+    gid: "",
+    goal: 2000,
+    reward: "(Define la recompensa)",
+    sheetName: "Sebastian",
+    defaultCats: [
+      { name: "Día sin groserías", points: 100, group: "sinGroserias" },
+      { name: "Grosería", points: -15 },
+      { name: "Conseguir novia", points: 150 },
+      { name: "Otro", points: null }
+    ]
+  }
 ];
 
 /* ----- UTILIDADES ----- */
@@ -61,18 +111,20 @@ function addDays(iso, days) {
 
 function catEmoji(name) {
   const n = (name || "").toLowerCase();
-  if (/redes|social/.test(n))           return "📵";
-  if (/ortograf|ortogr/.test(n))        return "✍️";
-  if (/gym|gimnasio|entreno/.test(n))   return "💪";
-  if (/ausen/.test(n))                  return "😴";
-  if (/chiste malo/.test(n))            return "🙄";
-  if (/chiste/.test(n))                 return "😄";
-  if (/sexual/.test(n))                 return "🤐";
-  if (/novia/.test(n))                  return "💘";
-  if (/entrar/.test(n))                 return "🏁";
-  if (/instal/.test(n))                 return "📱";
-  if (/error|fallo/.test(n))            return "⚠️";
-  if (/otro|criterio|manual/.test(n))   return "🎯";
+  if (/sin groser|sin malas palabras/.test(n)) return "😇";
+  if (/groser|insulto|mala palabra/.test(n))    return "🤬";
+  if (/redes|social/.test(n))                  return "📵";
+  if (/ortograf|ortogr/.test(n))               return "✍️";
+  if (/gym|gimnasio|entreno/.test(n))          return "💪";
+  if (/ausen/.test(n))                         return "😴";
+  if (/chiste malo/.test(n))                   return "🙄";
+  if (/chiste/.test(n))                        return "😄";
+  if (/sexual/.test(n))                        return "🤐";
+  if (/novia/.test(n))                         return "💘";
+  if (/entrar/.test(n))                        return "🏁";
+  if (/instal/.test(n))                        return "📱";
+  if (/error|fallo/.test(n))                   return "⚠️";
+  if (/otro|criterio|manual/.test(n))          return "🎯";
   return "📌";
 }
 
@@ -158,22 +210,26 @@ function extractSpreadsheetId(urlOrId) {
 function buildSheetFetchUrl(cfg) {
   const custom = state.realtimeSource;
   const timestamp = Date.now();
+  const gid = localStorage.getItem("SHEET_GID_" + cfg.key) || cfg.gid;
+  const target = gid ? `gid=${encodeURIComponent(gid)}` : `sheet=${encodeURIComponent(cfg.sheetName || cfg.name)}`;
 
   // 1. Si el usuario configuró una URL directa de Google Sheets (Modo Tiempo Real Instantáneo)
   const ssId = extractSpreadsheetId(custom);
   if (ssId) {
     // La API gviz/tq de Google Sheets devuelve CSV EN VIVO sin los 5 minutos de caché
-    return `https://docs.google.com/spreadsheets/d/${ssId}/gviz/tq?tqx=out:csv&gid=${encodeURIComponent(cfg.gid)}&_t=${timestamp}`;
+    return `https://docs.google.com/spreadsheets/d/${ssId}/gviz/tq?tqx=out:csv&${target}&_t=${timestamp}`;
   }
 
   // 2. Si el usuario configuró una Apps Script Web App URL
   if (custom && custom.includes("script.google.com")) {
-    return `${custom}${custom.includes("?") ? "&" : "?"}action=csv&gid=${encodeURIComponent(cfg.gid)}&_t=${timestamp}`;
+    return `${custom}${custom.includes("?") ? "&" : "?"}action=csv&${target}&_t=${timestamp}`;
   }
 
   // 3. Por defecto: Publicar en la web CSV
-  let url = DEFAULT_BASE_URL + `?output=csv&gid=${encodeURIComponent(cfg.gid)}&_t=${timestamp}`;
-  return url;
+  if (gid) {
+    return DEFAULT_BASE_URL + `?output=csv&gid=${encodeURIComponent(gid)}&_t=${timestamp}`;
+  }
+  return DEFAULT_BASE_URL + `?output=csv&sheet=${encodeURIComponent(cfg.sheetName || cfg.name)}&_t=${timestamp}`;
 }
 
 /** Realiza el fetch con control de caché */
@@ -282,6 +338,16 @@ async function apiGetAll() {
   for (const cfg of PERSONS_CFG) {
     try {
       const rows = await fetchSheetData(cfg);
+
+      // Validar si el CSV devuelto corresponde realmente a esta persona
+      const isMismatch = rows.length > 2 && (
+        (rows[2] && rows[2][0] && rows[2][0].startsWith("tracker:") && !rows[2][0].includes(":" + cfg.key + ":")) ||
+        (rows[0] && rows[0].some(cell => /Camino a los/i.test(cell) && !cell.toLowerCase().includes(cfg.name.toLowerCase())))
+      );
+      if (isMismatch) {
+        throw new Error(`La hoja recibida no coincide con ${cfg.name}.`);
+      }
+
       const records = extractRecords(rows);
       const meta = extractMeta(rows);
       const goal = meta.goal || cfg.goal || 2000;
@@ -295,15 +361,18 @@ async function apiGetAll() {
           cats.push({ name: r.category, points: r.points, group: null });
         }
       });
-      // Añadir categorías predeterminadas si aún no tienen registros
-      const defaultList = [
-        "Día sin redes sociales", "Día sin temas sexuales (todos en Discord)",
-        "Chiste bueno", "Chiste malo", "Día gym", "Error ortográfico", "Conseguir novia", "Entrar al gym", "Ausencia", "Otro"
+      // Añadir categorías predeterminadas de la persona si aún no tienen registros
+      const defaultList = cfg.defaultCats || [
+        { name: "Conseguir novia", points: 150 },
+        { name: "Otro", points: null }
       ];
-      defaultList.forEach(name => {
-        if (!seen.has(name)) {
-          seen.add(name);
-          cats.push({ name, points: null, group: null });
+      defaultList.forEach(item => {
+        const catName = typeof item === "string" ? item : item.name;
+        const catPoints = typeof item === "object" ? item.points : null;
+        const catGroup = typeof item === "object" ? item.group || null : null;
+        if (!seen.has(catName)) {
+          seen.add(catName);
+          cats.push({ name: catName, points: catPoints, group: catGroup });
         }
       });
 
@@ -316,7 +385,20 @@ async function apiGetAll() {
         records
       });
     } catch (e) {
-      console.error(`Error cargando datos de ${cfg.name}:`, e);
+      console.warn(`No se pudieron cargar datos remotos para ${cfg.name}. Inicializando estado local:`, e);
+      const cats = (cfg.defaultCats || []).map(item => ({
+        name: typeof item === "string" ? item : item.name,
+        points: typeof item === "object" ? item.points : null,
+        group: typeof item === "object" ? item.group || null : null
+      }));
+      persons.push({
+        key: cfg.key,
+        name: cfg.name,
+        goal: cfg.goal || 2000,
+        reward: cfg.reward || "(Define la recompensa)",
+        categories: cats,
+        records: []
+      });
     }
   }
 

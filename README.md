@@ -1,4 +1,4 @@
-# 🏆 Registro de Puntos — Leonardo & Felipe
+# 🏆 Registro de Puntos — Leonardo, Felipe & Sebastian
 
 Aplicación web moderna, responsive y con animaciones de alta fidelidad para visualizar en tiempo real el progreso de puntos y recompensas a partir de **Google Sheets**.
 

@@ -236,6 +236,7 @@ const P = () => S.persons[S.cur];
 
 function icon(n) {
   n = n.toLowerCase();
+  if (n.includes('groser') || n.includes('insulto') || n.includes('mala palabra')) return (n.includes('sin') || n.includes('no')) ? '😇' : '🤬';
   if (n.includes('instal')) return '📱';
   if (n.includes('redes')) return '📵';
   if (n.includes('sexual')) return '🤐';
